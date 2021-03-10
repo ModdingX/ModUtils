@@ -1,0 +1,6 @@
+version:2580
+autoJump:false
+gamma:10.0
+guiScale:3
+lastServer:127.0.0.1
+heldItemTooltips:true

@@ -1,0 +1,8 @@
+.settings
+.metadata
+.classpath
+.project
+.idea
+build
+.gradle
+eclipse
