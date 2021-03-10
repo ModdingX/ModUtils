@@ -179,7 +179,7 @@ curseforge {
     }
 }
 
-String getVersion(String baseVersion) {
+private String getVersion(String baseVersion) {
     java.nio.file.Path mavenPath = file(project.local_maven).toPath().resolve(project.group.replace('.', '/')).resolve(archivesBaseName)
     if (!Files.isDirectory(mavenPath)) {
         return "${baseVersion}.0"
@@ -300,5 +300,5 @@ if (Boolean.parseBoolean(project.mixins) && System.getProperty("idea.sync.active
 
 ext {
     setup = this.setup
-    getVersion = this.getVersion
+    getMavenVersion = { String baseVersion -> getVersion(baseVersion)}
 }
