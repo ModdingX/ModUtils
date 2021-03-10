@@ -47,7 +47,7 @@ apply from: 'https://raw.githubusercontent.com/MinecraftModDevelopment/Gradle-Co
 loadSecrets()
 
 archivesBaseName = project.name
-version = getVersion()
+version = getVersion("${project.mc_version}-${project.base_version}")
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 
@@ -179,8 +179,7 @@ curseforge {
     }
 }
 
-private String getVersion() {
-    String baseVersion = "${project.mc_version}-${project.base_version}"
+String getVersion(String baseVersion) {
     java.nio.file.Path mavenPath = file(project.local_maven).toPath().resolve(project.group.replace('.', '/')).resolve(archivesBaseName)
     if (!Files.isDirectory(mavenPath)) {
         return "${baseVersion}.0"
@@ -301,4 +300,5 @@ if (Boolean.parseBoolean(project.mixins) && System.getProperty("idea.sync.active
 
 ext {
     setup = this.setup
+    getVersion = this.getVersion
 }
