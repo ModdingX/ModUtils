@@ -19,7 +19,7 @@ buildscript {
     }
 }
 
-final VersionRange gradleVersion = VersionRange.createFromVersionSpec('[6.7,)')
+final VersionRange gradleVersion = VersionRange.createFromVersionSpec('[6.8.1,)')
 
 if (!gradleVersion.containsVersion(new DefaultArtifactVersion(gradle.gradleVersion))) {
     throw new IllegalStateException("Gradle version ${gradle.gradleVersion} does not match required version range: ${gradleVersion}")
