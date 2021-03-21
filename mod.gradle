@@ -71,7 +71,7 @@ minecraft {
 
 if (Boolean.parseBoolean(project.mixins)) {
     mixin {
-        add sourceSets.main, "libx.refmap.json"
+        add sourceSets.main, "${project.modid}.refmap.json"
     }
 }
 
@@ -155,7 +155,7 @@ curseforge {
             changelogType = 'markdown'
 
             ((project.findProperty('curse_versions') ?: project.mc_version) as String).split(',').each {
-                addGameVersion "${it}"
+                addGameVersion "${it.trim()}"
             }
 
             if (project.hasProperty('curse_requirements') || project.hasProperty('curse_optionals')) {
@@ -163,13 +163,13 @@ curseforge {
                     relations {
                         if (project.hasProperty('curse_requirements')) {
                             project.getProperty('curse_requirements').split(',').each {
-                                requiredDependency "${it}"
+                                requiredDependency "${it.trim()}"
                             }
                         }
 
                         if (project.hasProperty('curse_optionals')) {
                             project.getProperty('curse_optionals').split(',').each {
-                                optionalDependency "${it}"
+                                optionalDependency "${it.trim()}"
                             }
                         }
                     }
