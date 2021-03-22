@@ -269,6 +269,17 @@ task setup {
                     '    side="BOTH"'
             ], StandardOpenOption.CREATE)
         }
+        if (!Files.exists(file('src/main/resources/pack.mcmeta').toPath())) {
+            Files.write(file('src/main/resources/pack.mcmeta').toPath(), [
+                    "{",
+                    "    \"pack\": {",
+                    "        \"description\": \"${project.name} resources\",",
+                    "        \"pack_format\": 6",
+                    "    }",
+                    "}"
+
+            ], StandardOpenOption.CREATE)
+        }
         if (Boolean.parseBoolean(project.mixins) && !Files.exists(file("src/main/resources/${project.modid}.mixins.json").toPath())) {
             Files.write(file("src/main/resources/${project.modid}.mixins.json").toPath(), [
                     '{',
