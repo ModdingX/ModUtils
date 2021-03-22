@@ -240,7 +240,7 @@ task setup {
         }
         if (!Files.exists(file('src/main/resources/META-INF/mods.toml').toPath())) {
             Files.write(file('src/main/resources/META-INF/mods.toml').toPath(), [
-                    "modId=\"${project.modid}\"",
+                    "modLoader=\"javafml\"",
                     "loaderVersion=\"[${loaderVersion},)\"",
                     "license=\"${project.license_name}\"",
                     'issueTrackerURL=""',
