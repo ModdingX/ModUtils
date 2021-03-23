@@ -218,7 +218,7 @@ task setup {
             FileUtils.copyDirectory(clone.resolve('runData').toFile(), file('runData'))
         }
         Files.copy(clone.resolve('mod.gitignore'), file('.gitignore').toPath(), StandardCopyOption.REPLACE_EXISTING)
-        if (!Files.exists(clone.resolve('Jenkinsfile'))) {
+        if (!Files.exists(file('Jenkinsfile').toPath())) {
             Files.copy(clone.resolve('Jenkinsfile'), file('Jenkinsfile').toPath())
         }
         Files.createDirectories(file("src/main/java/${project.group.replace('.', '/')}/${project.modid}").toPath())
