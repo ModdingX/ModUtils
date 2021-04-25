@@ -39,7 +39,9 @@ if (!Files.isRegularFile(file('gradle.properties').toPath())) {
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'com.matthewprenger.cursegradle'
 apply plugin: 'maven-publish'
-apply plugin: 'org.spongepowered.mixin'
+if (project.mixins) {
+    apply plugin: 'org.spongepowered.mixin'
+}
 
 apply from: 'https://raw.githubusercontent.com/MinecraftModDevelopment/Gradle-Collection/master/generic/secrets.gradle'
 apply from: 'https://raw.githubusercontent.com/MinecraftModDevelopment/Gradle-Collection/master/generic/markdown-git-changelog.gradle'
