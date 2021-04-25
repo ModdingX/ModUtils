@@ -39,7 +39,7 @@ if (!Files.isRegularFile(file('gradle.properties').toPath())) {
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'com.matthewprenger.cursegradle'
 apply plugin: 'maven-publish'
-if (project.mixins) {
+if (Boolean.parseBoolean(project.mixins)) {
     apply plugin: 'org.spongepowered.mixin'
 }
 
