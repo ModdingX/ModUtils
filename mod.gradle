@@ -81,8 +81,8 @@ def createRunConfig(String name, Closure extra = {}) {
     minecraft.runs.create(name) { RunConfig run ->
         run.workingDirectory project.file("run" + name.capitalize())
         run.property "forge.logging.markers", "SCAN,REGISTRIES"
-        run.propery "mixin.env.remapRefMap", "true"
-        run.propery "mixin.env.refMapRemappingFile", project.createSrgToMcp.getOutput().toPath().toAbsolutePath().normalize().toString()
+        run.property "mixin.env.remapRefMap", "true"
+        run.property "mixin.env.refMapRemappingFile", project.createSrgToMcp.getOutput().toPath().toAbsolutePath().normalize().toString()
         
         run.property "forge.logging.console.level", "debug"
         if (Boolean.parseBoolean(project.mixins)) {
