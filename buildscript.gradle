@@ -3,6 +3,7 @@ repositories {
     maven { url = 'https://libraries.minecraft.net/' }
     maven { url = 'https://plugins.gradle.org/m2/' }
     maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+    maven { url = 'https://noeppi-noeppi.github.io/MappingUtilities/' }
     mavenCentral()
     jcenter()
 }
@@ -12,4 +13,5 @@ dependencies {
     classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     classpath 'org.apache.maven:maven-artifact:3.6.3'
     classpath 'gradle.plugin.com.matthewprenger:CurseGradle:1.4.0'
+    classpath 'io.github.noeppi_noeppi.tools:MappingConverter:1.0.0'
 }
