@@ -40,7 +40,7 @@ Now you can run `gradle setup` which will create some new files. Now you're read
 | `curse_requirements` | A list of projects that are required dependencies on CurseForge (separated by commas). |
 | `curse_optionals` | A list of projects that are optional dependencies on CurseForge (separated by commas). |
 
-# Custom Mappings
+## Custom Mappings
 
 You can set `mappings` to `custom`. In this case you need to create a file called `mappings.mcm`. This file will be used to generate the mappings that should be used. `mappings.mcm` is a [MappingConverter](https://github.com/noeppi-noeppi/MappingConverter) script. It will get two variables set by ModUtils:
 
