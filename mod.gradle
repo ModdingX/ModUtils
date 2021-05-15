@@ -76,8 +76,17 @@ minecraft {
     if (project.hasProperty('mappings')) {
         String mappingsStr = ((String) project.getProperty('mappings'))
         if (mappingsStr.trim().toLowerCase() == "custom") {
-            // Mappings are built by MappingConverter. Version is not available
-            mappings channel: 'custom', version: 'unused'
+            // Mappings are built by MappingConverter. Version is the md5 of the mcm file plus the mc version
+            // so everything is updated when something changes.
+            java.nio.file.Path mcm = this.project.file('mappings.mcm').toPath()
+            if (!Files.exists(mcm)) {
+                throw new IOException("Can't use custom mappings: mappings.mcm does not exist.")
+            }
+            InputStream fin = Files.newInputStream(mcm)
+            String md5 = DigestUtils.md5Hex(fin)
+            fin.close()
+            // may not use '_' here to combine mc version and md5 because of ForgeGradle
+            mappings channel: 'custom', version: project.mc_version.toString() + '-' + md5
         } else {
             mappings channel: mappingsStr.substring(0, mappingsStr.indexOf(':')), version: mappingsStr.substring(mappingsStr.indexOf(':') + 1)
         }
@@ -370,7 +379,7 @@ class FakeRepo extends BaseRepo {
             String ext = artifact.getExtension() == null ? "zip" : artifact.getExtension().toLowerCase()
             java.nio.file.Path mcm = this.project.file('mappings.mcm').toPath()
             if (!Files.exists(mcm)) {
-                throw new IOException("Cant get custom mappings: mappings.mcm does not exist.")
+                throw new IOException("Can't get custom mappings: mappings.mcm does not exist.")
             }
             InputStream fin = Files.newInputStream(mcm)
             String md5 = DigestUtils.md5Hex(fin)
