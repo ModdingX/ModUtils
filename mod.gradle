@@ -391,7 +391,7 @@ class FakeRepo extends BaseRepo {
             if (ext == "pom") {
                 if (!Files.exists(path)) {
                     BufferedWriter w = Files.newBufferedWriter(path)
-                    w.write(new POMBuilder("net.minecraft", "mappings_custom", artifact.getVersion()).build() + "\n")
+                    w.write(new POMBuilder("net.minecraft", "mappings_custom", project.mc_version.toString() + "-" + md5).build() + "\n")
                     w.close()
                 }
                 return path.toFile()
