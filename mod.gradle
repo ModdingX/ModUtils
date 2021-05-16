@@ -7,7 +7,8 @@ import net.minecraftforge.artifactural.base.repository.SimpleRepository;
 import net.minecraftforge.artifactural.gradle.GradleRepositoryAdapter
 import net.minecraftforge.gradle.common.util.Utils
 import net.minecraftforge.gradle.common.util.POMBuilder
-import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.codec.digest.DigestUtils
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion
 import org.apache.maven.artifact.versioning.VersionRange
@@ -399,7 +400,7 @@ class FakeRepo extends BaseRepo {
                 if (!Files.exists(path)) {
                     Map<String, String> vars = new HashMap<>()
                     vars.put("mc", project.mc_version.toString())
-                    vars.put("out", '"' + path.toAbsolutePath().normalize().toString() + '"')
+                    vars.put("out", '"' + StringEscapeUtils.escapeJava(path.toAbsolutePath().normalize().toString()) + '"')
                     io.github.noeppi_noeppi.mappings.MCM.runFile(mcm, vars)
                 }
                 return path.toFile()
