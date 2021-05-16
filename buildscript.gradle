@@ -15,4 +15,3 @@ dependencies {
     classpath 'gradle.plugin.com.matthewprenger:CurseGradle:1.4.0'
     classpath 'io.github.noeppi_noeppi.tools:MappingConverter:1.0.8'
 }
-
