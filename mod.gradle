@@ -17,6 +17,11 @@ import org.codehaus.plexus.util.FileUtils
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
+import java.util.function.Function
+import java.util.stream.Collectors
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 
 
 buildscript {
@@ -67,7 +72,7 @@ println('Mod: ' + archivesBaseName + ' Group: ' + group + ' Version: ' + version
 
 if (project.hasProperty('mappings')) {
     String mappingsStr = ((String) project.getProperty('mappings'))
-    if (mappingsStr.trim().toLowerCase() == "custom") {
+    if (mappingsStr.trim().toLowerCase() == 'custom' || mappingsStr.trim().toLowerCase().startsWith('unofficial:')) {
         println("Loading ModUtils fake repo")
         new FakeRepo(project).load()
     }
@@ -402,6 +407,67 @@ class FakeRepo extends BaseRepo {
                     vars.put("mc", project.mc_version.toString())
                     vars.put("out", '"' + StringEscapeUtils.escapeJava(path.toAbsolutePath().normalize().toString()) + '"')
                     io.github.noeppi_noeppi.mappings.MCM.runFile(mcm, vars)
+                }
+                return path.toFile()
+            }
+        } else if (artifact.getGroup() == "net.minecraft" && artifact.getName() == "mappings_unofficial") {
+            String ext = artifact.getExtension() == null ? "zip" : artifact.getExtension().toLowerCase()
+            java.nio.file.Path path = this.project.file('build/custom_mappings/unofficial_' + project.mc_version.toString() + '_' + artifact.getVersion() + '.' + ext).toPath()
+            if (!Files.exists(path.getParent())) {
+                Files.createDirectories(path.getParent())
+            }
+            if (ext == "pom") {
+                if (!Files.exists(path)) {
+                    BufferedWriter w = Files.newBufferedWriter(path)
+                    w.write(new POMBuilder("net.minecraft", "mappings_unofficial", artifact.getVersion()).build() + "\n")
+                    w.close()
+                }
+                return path.toFile()
+            } else if (ext == "zip") {
+                if (!Files.exists(path)) {
+                    artifact.getVersion()
+                    List<String> fields = new ArrayList<>()
+                    List<String> methods = new ArrayList<>()
+                    List<String> params = new ArrayList<>()
+                    Function<URL, String> readURL = { url ->
+                        String baseVersion = null
+                        ZipInputStream zip = new ZipInputStream(url.openStream())
+                        for (ZipEntry entry = zip.nextEntry; entry != null; entry = zip.nextEntry) {
+                            if (entry.getName() == '.mcp_base' || entry.getName() == '.mcp_base') {
+                                baseVersion = new BufferedReader(new InputStreamReader(zip)).readLine()
+                            } else if (entry.getName() == 'fields.csv' || entry.getName() == '/fields.csv') {
+                                fields.addAll(new BufferedReader(new InputStreamReader(zip)).lines().collect(Collectors.toList()))
+                            } else if (entry.getName() == 'methods.csv' || entry.getName() == '/methods.csv') {
+                                methods.addAll(new BufferedReader(new InputStreamReader(zip)).lines().collect(Collectors.toList()))
+                            } else if (entry.getName() == 'params.csv' || entry.getName() == '/params.csv') {
+                                params.addAll(new BufferedReader(new InputStreamReader(zip)).lines().collect(Collectors.toList()))
+                            }
+                        }
+                        return baseVersion
+                    }
+                    String mcp_base = readURL.apply(new URL("https://noeppi-noeppi.github.io/MappingUtilities/mcp_unofficial/${artifact.getVersion()}.zip"))
+                    if (mcp_base == null) {
+                        println("MCP unofficial mappings have no MCP base.")
+                    } else {
+                        String mcp_channel = mcp_base.substring(0, mcp_base.indexOf('_'))
+                        String mcp_version = mcp_base.substring(mcp_base.indexOf('_') + 1)
+                        readURL.apply(new URL("https://maven.minecraftforge.net/de/oceanlabs/mcp/mcp_${mcp_channel}/${mcp_version}/mcp_${mcp_channel}-${mcp_version}.zip"))
+                    }
+                    ZipOutputStream zout = new ZipOutputStream(Files.newOutputStream(path))
+                    BufferedWriter w = new BufferedWriter(new OutputStreamWriter(zout))
+                    zout.putNextEntry(new ZipEntry('fields.csv'))
+                    fields.each { w.writeLine(it) }
+                    w.flush()
+                    zout.closeEntry()
+                    zout.putNextEntry(new ZipEntry('methods.csv'))
+                    methods.each { w.writeLine(it) }
+                    w.flush()
+                    zout.closeEntry()
+                    zout.putNextEntry(new ZipEntry('params.csv'))
+                    params.each { w.writeLine(it) }
+                    w.flush()
+                    zout.closeEntry()
+                    zout.close()
                 }
                 return path.toFile()
             }

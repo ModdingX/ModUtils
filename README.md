@@ -29,7 +29,7 @@ Now you can run `gradle setup` which will create some new files. Now you're read
 | `base_version` | The base version of the mod. This is not the full version. The full version is determined by the file found in the local maven repository defined by `local_maven`. It'll always be the base version plus a dot followed by a number that is one higher than the highest number of all files in the maven that start with this base version. |
 | `mc_version` | The minecraft version to use |
 | `forge_version` | The forge version to use |
-| `mappings` | The mappings to use. This is optional. If left out, the official mappings of `mc_version` will be used. Format is `channel:version` or the string `custom`. See [Custom Mappings](#custom-mappings) for this. |
+| `mappings` | The mappings to use. This is optional. If left out, the official mappings of `mc_version` will be used. Format is `channel:version` or the string `custom`. See [Custom Mappings](#custom-mappings) for this. This also allows the channel `unofficial` which will load mappings from [here](https://github.com/noeppi-noeppi/MappingUtilities/tree/master/mcp_unofficial). |
 | `local_maven` | The local maven repository to use. This is used by the `publish` task and to determine the full version. |
 | `mixins` | Whether this project uses mixins. Either `true` or `false`. |
 | `license_name` | The name of the project's license. |
