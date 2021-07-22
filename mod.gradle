@@ -116,7 +116,7 @@ if (Boolean.parseBoolean(project.mixins)) {
 def createRunConfig(String name, Closure extra = {}) {
     minecraft.runs.create(name) { RunConfig run ->
         run.workingDirectory project.file("run" + name.capitalize())
-        run.property "forge.logging.markers", "SCAN,REGISTRIES"
+        run.property "forge.logging.markers", "REGISTRIES"
         run.property "mixin.env.remapRefMap", "true"
         run.property "mixin.env.refMapRemappingFile", project.createSrgToMcp.getOutput().toPath().toAbsolutePath().normalize().toString()
         
