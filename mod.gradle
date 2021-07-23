@@ -304,9 +304,15 @@ if (curseInfo() != null) {
             changelogType = 'markdown'
             info.gameVersions.each { addGameVersion "${it.strip()}" }
             mainArtifact(jar) {
-                relations {
-                    info.requirements.each { requiredDependency "${it.strip()}" }
-                    info.optionals.each { optionalDependency "${it.strip()}" }
+                if (!info.requirements.isEmpty()) {
+                    relations {
+                        info.requirements.each { requiredDependency "${it.strip()}" }
+                    }
+                }
+                if (!info.optionals.isEmpty()) {
+                    relations {
+                        info.optionals.each { optionalDependency "${it.strip()}" }
+                    }
                 }
             }
         }
