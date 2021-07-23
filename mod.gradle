@@ -1,135 +1,152 @@
-import net.minecraftforge.gradle.common.util.ModConfig
-import net.minecraftforge.gradle.common.util.RunConfig
-import net.minecraftforge.gradle.common.util.BaseRepo;
-import net.minecraftforge.artifactural.api.artifact.ArtifactIdentifier
-import net.minecraftforge.artifactural.base.repository.ArtifactProviderBuilder;
-import net.minecraftforge.artifactural.base.repository.SimpleRepository;
-import net.minecraftforge.artifactural.gradle.GradleRepositoryAdapter
-import net.minecraftforge.gradle.common.util.Utils
-import net.minecraftforge.gradle.common.util.POMBuilder
-import org.apache.commons.codec.digest.DigestUtils
-import org.apache.commons.text.StringEscapeUtils;
-import org.apache.maven.artifact.versioning.ComparableVersion
+import io.github.noeppi_noeppi.tools.modgradle.api.Versioning
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion
 import org.apache.maven.artifact.versioning.VersionRange
-import org.codehaus.plexus.util.FileUtils
 
+import javax.annotation.Nullable
 import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
-import java.util.function.Function
-import java.util.stream.Collectors
-import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
-import java.util.zip.ZipOutputStream
-
+import java.util.regex.Pattern
 
 buildscript {
+    project.ext { MODUTILS_VERSION = "v2" }
+    
     if (Files.isRegularFile(file('buildscript.gradle').toPath())) {
         println('Loading local buildscript.')
         apply from: "buildscript.gradle", to: buildscript
     } else {
-        apply from: "https://raw.githubusercontent.com/noeppi-noeppi/ModUtils/master/buildscript.gradle", to: buildscript
+        apply from: "https://raw.githubusercontent.com/noeppi-noeppi/ModUtils/${MODUTILS_VERSION}/buildscript.gradle", to: buildscript
     }
 }
 
-final VersionRange gradleVersion = VersionRange.createFromVersionSpec('[6.8.1,)')
+// ***** ModUtils constants ***** //
+
+final VersionRange javaVersion = VersionRange.createFromVersionSpec('[16,)')
+final VersionRange gradleVersion = VersionRange.createFromVersionSpec('[7.1,8.0)')
+final VersionRange sourceMcUpdateVersion = VersionRange.createFromVersionSpec('[1.16,1.17)')
+final List<String> requiredProperties = [ 'modid', 'group', 'base_version', 'forge_version', 'license_name', 'license_url' ]
+
+
+// ***** Basic requirements *****//
+
+if (!javaVersion.containsVersion(new DefaultArtifactVersion(System.getProperty('java.version')))) {
+    throw new IllegalStateException("Java version ${System.getProperty('java.version')} does not match required version range: ${javaVersion}")
+}
 
 if (!gradleVersion.containsVersion(new DefaultArtifactVersion(gradle.gradleVersion))) {
     throw new IllegalStateException("Gradle version ${gradle.gradleVersion} does not match required version range: ${gradleVersion}")
 }
 
 if (!Files.isRegularFile(file('gradle.properties').toPath())) {
-    Files.copy(new URL("https://raw.githubusercontent.com/noeppi-noeppi/ModUtils/master/gradle.properties").openStream(), file('gradle.properties').toPath())
+    Files.copy(new URL("https://raw.githubusercontent.com/noeppi-noeppi/ModUtils/${MODUTILS_VERSION}/gradle.properties").openStream(), file('gradle.properties').toPath())
     throw new RuntimeException("Default gradle.properties file created. Re-run your build now.")
 }
 
-[
-        'modid', 'group', 'base_version', 'mc_version', 'forge_version', 'local_maven', 'mixins', 'license_name',
-        'license_url'
-].stream().filter { !project.hasProperty(it) }.findFirst()
+requiredProperties.stream().filter { !project.hasProperty(it) }.findFirst()
         .ifPresent { throw new IllegalStateException("${it} should be defined in gradle.properties.") }
 
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'com.matthewprenger.cursegradle'
-apply plugin: 'maven-publish'
-if (Boolean.parseBoolean(project.mixins)) {
-    apply plugin: 'org.spongepowered.mixin'
+
+// ***** Utility functions ***** //
+
+boolean hasMixin() {
+    return project.hasProperty("mixins") && Boolean.parseBoolean(project.getProperties().get("mixins").toString())
 }
 
-apply from: 'https://raw.githubusercontent.com/MinecraftModDevelopment/Gradle-Collection/master/generic/secrets.gradle'
-apply from: 'https://raw.githubusercontent.com/MinecraftModDevelopment/Gradle-Collection/master/generic/markdown-git-changelog.gradle'
+boolean hasMcUpdate() {
+    return project.hasProperty("mcupdate") && Boolean.parseBoolean(project.getProperties().get("mcupdate").toString())
+}
 
-loadSecrets()
+@Nullable
+String localMaven() {
+    return project.hasProperty("local_maven") ? project.getProperties().get("local_maven").toString() : null
+}
+
+String mcVersion() {
+    return project.forge_version.toString().strip().substring(0, project.forge_version.toString().strip().indexOf('-'))
+}
+
+class CurseInfo {
+    final int projectId
+    final String releaseType
+    final List<String> gameVersions
+    final List<String> requirements
+    final List<String> optionals
+
+    CurseInfo(int projectId, String releaseType, List<String> gameVersions, List<String> requirements, List<String> optionals) {
+        this.projectId = projectId
+        this.releaseType = releaseType
+        this.gameVersions = gameVersions
+        this.requirements = requirements
+        this.optionals = optionals
+    }
+}
+
+@Nullable
+CurseInfo curseInfo() {
+    if (project.hasProperty("curse_project")) {
+        int projectId = Integer.parseInt(project.getProperties().get("curse_project").toString())
+        String releaseType = project.hasProperty("curse_release") ? project.getProperties().get("curse_release").toString() : "alpha"
+        List<String> gameVersions = project.hasProperty("curse_versions") ? Arrays.asList(project.getProperties().get("curse_versions").toString().split(",")) : [ mcVersion() ]
+        List<String> requirements = project.hasProperty("curse_requirements") ? Arrays.asList(project.getProperties().get("curse_requirements").toString().split(",")) : []
+        List<String> optionals = project.hasProperty("curse_optionals") ? Arrays.asList(project.getProperties().get("curse_optionals").toString().split(",")) : []
+        return new CurseInfo(projectId, releaseType, gameVersions, requirements, optionals)
+    } else {
+        [ "curse_release", "curse_versions", "curse_requirements", "curse_optionals" ].stream().filter { project.hasProperty(it) }.findFirst()
+                .ifPresent { throw new IllegalStateException("${it} is not available without curse_project.") }
+        return null
+    }
+}
+
+// ***** Additional Checks ***** //
+
+if (hasMcUpdate() && !sourceMcUpdateVersion.containsVersion(new DefaultArtifactVersion(mcVersion()))) {
+    throw new IllegalStateException("mcupdate currently only supports updating from ${sourceMcUpdateVersion}. Updating from minecraft ${mcVersion()} is not supported.")
+}
+
+if (hasMixin() && Versioning.getMixinVersion(mcVersion()) == null) {
+    throw new IllegalStateException("Mixin is not available for minecraft ${mcVersion()}")
+}
+
+// Trigger curseInfo once as it also does some error checking
+// so we can report an error as early as possible.
+curseInfo()
+
+
+// ***** Apply gradle plugins ***** //
+
+apply plugin: 'java'
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.mapping'
+if (hasMcUpdate()) {
+    apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.mcupdate'
+}
+apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.meta'
+if (hasMixin()) {
+    throw new IllegalStateException("Can't use mixin: MixinGradle is currently not compatible with ForgeGradle 5.")
+}
+if (localMaven() != null) {
+    apply plugin: 'maven-publish'
+}
+if (curseInfo() != null) {
+    apply plugin: 'com.matthewprenger.cursegradle'
+    apply from: 'https://raw.githubusercontent.com/MinecraftModDevelopment/Gradle-Collection/master/generic/secrets.gradle'
+    apply from: 'https://raw.githubusercontent.com/MinecraftModDevelopment/Gradle-Collection/master/generic/markdown-git-changelog.gradle'
+    loadSecrets()
+}
+
+
+// ***** Base Project information ***** //
 
 archivesBaseName = project.name
-version = getVersion("${project.mc_version}-${project.base_version}")
+version = localMaven() == null ? project.base_version : Versioning.getVersion(project, project.base_version, localMaven())
+java.toolchain.languageVersion = JavaLanguageVersion.of(Versioning.getJavaVersion(mcVersion()))
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+println "Java: ${System.getProperty('java.version')}   JVM: ${System.getProperty('java.vm.version')}(${System.getProperty('java.vendor')})   Arch: ${System.getProperty('os.arch')}"
+println "Mod: ${project.name}(${project.modid})   Group: ${project.group}   Version: ${project.version}"
+println "Minecraft: ${mcVersion()}   Target: java${java.toolchain.languageVersion.get()}"+ (hasMixin() ? "   Mixin: ${Versioning.getMixinVersion(mcVersion()).release()}" : '')
+println ''
 
-println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
-println('Mod: ' + archivesBaseName + ' Group: ' + group + ' Version: ' + version)
 
-if (project.hasProperty('mappings')) {
-    String mappingsStr = ((String) project.getProperty('mappings'))
-    if (mappingsStr.trim().toLowerCase() == 'custom' || mappingsStr.trim().toLowerCase().startsWith('unofficial:')) {
-        println("Loading ModUtils fake repo")
-        new FakeRepo(project).load()
-    }
-}
-
-minecraft {
-    if (project.hasProperty('mappings')) {
-        String mappingsStr = ((String) project.getProperty('mappings'))
-        if (mappingsStr.trim().toLowerCase() == "custom") {
-            // Mappings are built by MappingConverter. Version is the md5 of the mcm file plus the mc version
-            // so everything is updated when something changes.
-            java.nio.file.Path mcm = this.project.file('mappings.mcm').toPath()
-            if (!Files.exists(mcm)) {
-                throw new IOException("Can't use custom mappings: mappings.mcm does not exist.")
-            }
-            InputStream fin = Files.newInputStream(mcm)
-            String md5 = DigestUtils.md5Hex(fin)
-            fin.close()
-            // may not use '_' here to combine mc version and md5 because of ForgeGradle
-            mappings channel: 'custom', version: project.mc_version.toString() + '-' + md5
-        } else {
-            mappings channel: mappingsStr.substring(0, mappingsStr.indexOf(':')), version: mappingsStr.substring(mappingsStr.indexOf(':') + 1)
-        }
-    } else {
-        mappings channel: 'official', version: mc_version
-    }
-    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-    createRunConfig("client")
-    createRunConfig("server")
-    createRunConfig("data", { RunConfig run ->
-        run.args "--mod", modid, "--all", "--output", file("src/generated/resources/"), "--existing", file("src/main/resources")
-    })
-}
-
-if (Boolean.parseBoolean(project.mixins)) {
-    mixin {
-        add sourceSets.main, "${project.modid}.refmap.json"
-    }
-}
-
-def createRunConfig(String name, Closure extra = {}) {
-    minecraft.runs.create(name) { RunConfig run ->
-        run.workingDirectory project.file("run" + name.capitalize())
-        run.property "forge.logging.markers", "SCAN,REGISTRIES"
-        run.property "mixin.env.remapRefMap", "true"
-        run.property "mixin.env.refMapRemappingFile", project.createSrgToMcp.getOutput().toPath().toAbsolutePath().normalize().toString()
-        
-        run.property "forge.logging.console.level", "debug"
-        if (Boolean.parseBoolean(project.mixins)) {
-            // Weirdly a GString does not work here
-            run.arg "-mixin.config=" + project.modid + ".mixins.json"
-        }
-        run.mods.create(modid) { ModConfig mod ->
-            source sourceSets.main
-        }
-    }.with(extra)
-}
+// ***** Project Configuration ***** //
 
 sourceSets.main.resources {
     srcDir 'src/generated/resources'
@@ -138,340 +155,173 @@ sourceSets.main.resources {
 repositories {
     maven { url = 'https://maven.minecraftforge.net/' }
     maven { url = 'https://libraries.minecraft.net/' }
+    maven { url = 'https://noeppi-noeppi.github.io/MinecraftUtilities/maven' }
     maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
 }
 
 dependencies {
-    minecraft "net.minecraftforge:forge:${mc_version}-${forge_version}"
+    minecraft "net.minecraftforge:forge:${project.forge_version}"
+}
 
-    if (Boolean.parseBoolean(project.mixins)) {
-        annotationProcessor 'org.spongepowered:mixin:0.8.2:processor'
+
+// ***** Minecraft Configuration ***** //
+
+minecraft {
+    if (project.hasProperty('mappings')) {
+        String mappingsStr = project.getProperties().get('mappings').toString()
+        mappings channel: mappingsStr.substring(0, mappingsStr.indexOf('_')), version: mappingsStr.substring(mappingsStr.indexOf('_') + 1)
+    } else {
+        mappings channel: 'official', version: mcVersion()
+    }
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+
+    final Closure defaultRun = {
+        property 'forge.logging.console.level', 'debug'
+        property 'forge.logging.markers', 'REGISTRIES'
+        if (Versioning.getMixinVersion(mcVersion()) != null) {
+            // Only add mixin related options if mixin is available
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', project.createSrgToMcp.getOutput().get().getAsFile().toPath().toAbsolutePath().normalize().toString()
+            if (hasMixin()) {
+                arg '-mixin.config=' + project.modid + '.mixins.json'
+            }
+        }
+        mods {
+            "${project.modid}" {
+                source sourceSets.main
+            }
+        }
+    }
+    final int resourceVersion = Versioning.getResourceVersion(mcVersion())
+    runs {
+        client {
+            workingDirectory project.file('runClient')
+        }.with(defaultRun)
+        server {
+            workingDirectory project.file('runServer')
+        }.with(defaultRun)
+        if (resourceVersion >= 4) {
+            data {
+                workingDirectory project.file('runData')
+                args '--mod', project.modid, '--all', '--output', file('src/generated/resources'), '--existing', file('src/main/resources')
+            }.with(defaultRun)
+        }
     }
 }
+
+
+// ***** ModGradle Configuration ***** //
+
+setup {
+    modid = project.modid
+    license = project.license_name.toString()
+    licenseUrl = new URL(project.license_url.toString())
+    mixin = hasMixin()
+    repo = new URL("https://github.com/noeppi-noeppi/ModUtils.git")
+    repoBranch = project.MODUTILS_VERSION
+}
+
+if (hasMcUpdate()) {
+    mcupdateMappings {
+        if (project.hasProperty('mappings')) {
+            mappings = project.getProperties().get('mappings').toString()
+        } else {
+            mappings = 'official_' + mcVersion()
+        }
+    }
+    
+    task modutils_removeUpdateProperty {
+        doLast {
+            if (Files.isRegularFile(project.file('gradle.properties').toPath())) {
+                List<String> properties = new ArrayList<>(Arrays.asList(Files.readString(project.file('gradle.properties').toPath()).split('\n')))
+                properties.removeIf(Pattern.compile('\\s*mcupdate\\s*=\\s*true\\s*', Pattern.CASE_INSENSITIVE).asMatchPredicate())
+                Files.writeString(project.file('gradle.properties').toPath(), String.join('\n', properties), StandardOpenOption.TRUNCATE_EXISTING)
+            }
+        }
+    }
+    // Need to get the task like this as we have the mcupdate property that shades the task
+    project.tasks.getByName('mcupdate').finalizedBy(modutils_removeUpdateProperty)
+}
+
+
+// ***** Build Configuration ***** //
 
 jar {
     manifest {
         attributes([
-                'Specification-Title'     : project.modid,
-                'Specification-Version'   : '1',
-                'Implementation-Title'    : project.name,
-                'Implementation-Version'  : project.version,
-                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                'Specification-Title': project.modid,
+                'Specification-Version': '1',
+                "Implementation-Title": project.name,
+                "Implementation-Version": project.version,
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
-        if (Boolean.parseBoolean(project.mixins)) {
+        if (hasMixin()) {
             attributes.put('MixinConfigs', "${project.modid}.mixins.json")
         }
     }
 }
-
 jar.finalizedBy('reobfJar')
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            groupId = project.group
-            artifactId = project.archivesBaseName
-            version = project.version
-            artifact jar
-            pom {
-                licenses {
-                    license {
-                        name = project.license_name
-                        url = project.license_url
+
+// ***** Publish Configuration ***** //
+
+if (localMaven() != null) {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                groupId = project.group
+                artifactId = project.name
+                version = project.version
+                artifact jar
+                pom {
+                    licenses {
+                        license {
+                            name = project.license_name
+                            url = project.license_url
+                        }
                     }
                 }
             }
         }
-    }
-    repositories {
-        maven {
-            url project.local_maven
+        repositories {
+            maven {
+                url localMaven()
+            }
         }
     }
+    publish.dependsOn('reobfJar')
 }
 
-curseforge {
-    apiKey = findProperty('curse_auth') ?: 0
-    if (project.hasProperty('curse_project')) {
+if (curseInfo() != null) {
+    CurseInfo info = curseInfo()
+    String curseChangelog = getGitChangelog()
+    curseforge {
+        apiKey = findProperty('curse_auth') ?: 0
         project {
-            id = "${curse_project}"
-            releaseType = project.findProperty('curse_release') ?: 'alpha'
-            changelog = getGitChangelog()
-            println(changelog)
+            id = Integer.toString(info.projectId)
+            releaseType = info.releaseType
+            changelog = curseChangelog
             changelogType = 'markdown'
-
-            ((project.findProperty('curse_versions') ?: project.mc_version) as String).split(',').each {
-                addGameVersion "${it.trim()}"
-            }
-
-            if (project.hasProperty('curse_requirements') || project.hasProperty('curse_optionals')) {
-                mainArtifact(jar) {
-                    relations {
-                        if (project.hasProperty('curse_requirements')) {
-                            project.getProperty('curse_requirements').split(',').each {
-                                requiredDependency "${it.trim()}"
-                            }
-                        }
-
-                        if (project.hasProperty('curse_optionals')) {
-                            project.getProperty('curse_optionals').split(',').each {
-                                optionalDependency "${it.trim()}"
-                            }
-                        }
-                    }
+            info.gameVersions.each { addGameVersion "${it.strip()}" }
+            mainArtifact(jar) {
+                relations {
+                    info.requirements.each { requiredDependency "${it.strip()}" }
+                    info.optionals.each { optionalDependency "${it.strip()}" }
                 }
             }
         }
     }
+    curseforge.dependsOn('reobfJar')
 }
 
-private String getVersion(String baseVersion) {
-    java.nio.file.Path mavenPath = file(project.local_maven).toPath().resolve(project.group.replace('.', '/')).resolve(archivesBaseName)
-    if (!Files.isDirectory(mavenPath)) {
-        return "${baseVersion}.0"
-    }
-    return "${baseVersion}." + Files.walk(mavenPath)
-            .filter { path -> Files.isRegularFile(path) && path.getFileName().toString().endsWith('.pom') }
-            .map { path ->
-                String fileName = path.getFileName().toString()
-                fileName.substring(fileName.indexOf('-', archivesBaseName.size()) + 1, fileName.length() - 4)
-            }.filter { version -> version.startsWith(baseVersion) }
-            .max { s1, s2 -> (new ComparableVersion(s1) <=> new ComparableVersion(s2)) }
-            .map { ver -> ver.substring(ver.findLastIndexOf { str -> !"0123456789".contains(str) } + 1) }
-            .map { ver -> ver.isEmpty() ? "-1" : ver }
-            .map { ver -> (ver.toInteger() + 1).toString() }
-            .orElse("0")
-}
 
-task setup {
-    outputs.upToDateWhen { false }
-    doFirst {
-        java.nio.file.Path clone = Files.createTempDirectory('mod-gradle')
-        ProcessBuilder process = new ProcessBuilder()
-                .inheritIO()
-                .command('git', 'clone', 'https://github.com/noeppi-noeppi/ModUtils.git', clone.toAbsolutePath().normalize().toString())
-        int exitCode = process.start().waitFor()
-        if (exitCode != 0) {
-            throw new IllegalStateException("Failed to clone repository from github.")
-        }
-        if (!Files.exists(file('runClient').toPath()) || Files.list(file('runClient').toPath()).count() == 0) {
-            FileUtils.copyDirectory(clone.resolve('runClient').toFile(), file('runClient'))
-        }
-        if (!Files.exists(file('runServer').toPath()) || Files.list(file('runServer').toPath()).count() == 0) {
-            FileUtils.copyDirectory(clone.resolve('runServer').toFile(), file('runServer'))
-        }
-        if (!Files.exists(file('runData').toPath()) || Files.list(file('runData').toPath()).count() == 0) {
-            FileUtils.copyDirectory(clone.resolve('runData').toFile(), file('runData'))
-        }
-        Files.copy(clone.resolve('mod.gitignore'), file('.gitignore').toPath(), StandardCopyOption.REPLACE_EXISTING)
-        if (!Files.exists(file('Jenkinsfile').toPath())) {
-            Files.copy(clone.resolve('Jenkinsfile'), file('Jenkinsfile').toPath())
-        }
-        Files.createDirectories(file("src/main/java/${project.group.replace('.', '/')}/${project.modid}").toPath())
-        Files.createDirectories(file("src/main/resources/META-INF").toPath())
-        Files.createDirectories(file("src/main/resources/assets/${project.modid}/lang").toPath())
-        Files.createDirectories(file("src/main/resources/data/${project.modid}").toPath())
-        Files.createDirectories(file("src/generated/resources").toPath())
-        if (!Files.exists(file('src/main/resources/META-INF/accesstransformer.cfg').toPath())) {
-            Files.createFile(file('src/main/resources/META-INF/accesstransformer.cfg').toPath())
-        }
-        String loaderVersion
-        String requiredForgeVersion
-        if (project.forge_version.contains('.')) {
-            loaderVersion = project.forge_version.substring(0, project.forge_version.indexOf('.'))
-            requiredForgeVersion = project.forge_version.substring(0, project.forge_version.lastIndexOf('.'))
-        } else {
-            loaderVersion = project.forge_version
-            requiredForgeVersion = project.forge_version
-        }
-        if (!Files.exists(file('src/main/resources/META-INF/mods.toml').toPath())) {
-            Files.write(file('src/main/resources/META-INF/mods.toml').toPath(), [
-                    "modLoader=\"javafml\"",
-                    "loaderVersion=\"[${loaderVersion},)\"",
-                    "license=\"${project.license_name}\"",
-                    'issueTrackerURL=""',
-                    '',
-                    '[[mods]]',
-                    "modId=\"${project.modid}\"",
-                    'version="${file.jarVersion}"',
-                    "displayName=\"${(project.modid as String).capitalize()}\"",
-                    'displayURL=""',
-                    'authors=""',
-                    'description="""',
-                    '"""',
-                    '',
-                    "[[dependencies.${project.modid}]]",
-                    '    modId="forge"',
-                    '    mandatory=true',
-                    "    versionRange=\"[${requiredForgeVersion},)\"",
-                    '    ordering="NONE"',
-                    '    side="BOTH"',
-                    '',
-                    "[[dependencies.${project.modid}]]",
-                    '    modId="minecraft"',
-                    '    mandatory=true',
-                    "    versionRange=\"[${project.mc_version},)\"",
-                    '    ordering="NONE"',
-                    '    side="BOTH"'
-            ], StandardOpenOption.CREATE)
-        }
-        if (!Files.exists(file('src/main/resources/pack.mcmeta').toPath())) {
-            Files.write(file('src/main/resources/pack.mcmeta').toPath(), [
-                    "{",
-                    "    \"pack\": {",
-                    "        \"description\": \"${project.name} resources\",",
-                    "        \"pack_format\": 6",
-                    "    }",
-                    "}"
-
-            ], StandardOpenOption.CREATE)
-        }
-        if (Boolean.parseBoolean(project.mixins) && !Files.exists(file("src/main/resources/${project.modid}.mixins.json").toPath())) {
-            Files.write(file("src/main/resources/${project.modid}.mixins.json").toPath(), [
-                    '{',
-                    '  "required": true,',
-                    '  "compatibilityLevel": "JAVA_8",',
-                    "  \"refmap\": \"${project.modid}.refmap.json\",",
-                    "  \"package\": \"${project.group}.${project.modid}.mixin\",",
-                    '  "minVersion": "0.8",',
-                    '  "client": [],',
-                    '  "server": [],',
-                    '  "mixins": []',
-                    '}'
-            ], StandardOpenOption.CREATE)
-        }
-        if (!Files.exists(file('LICENSE').toPath())) {
-            Files.copy(new URL(project.license_url).openStream(), file('LICENSE').toPath())
-        }
-    }
-}
+// ***** Miscellaneous ***** //
 
 // Prevent Mixin annotation processor from getting into IDEA's annotation processor settings
-if (Boolean.parseBoolean(project.mixins) && System.getProperty("idea.sync.active") == "true") {
+if (hasMixin() && System.getProperty("idea.sync.active") == "true") {
     afterEvaluate {
         tasks.withType(JavaCompile).all {
             it.options.annotationProcessorPath = files()
         }
-    }
-}
-
-ext {
-    setup = this.setup
-    getMavenVersion = { String baseVersion -> getVersion(baseVersion)}
-}
-
-class FakeRepo extends BaseRepo {
-
-    private final Project project
-    
-    protected FakeRepo(Project project) {
-        super(Utils.getCache(project, "modutils_repo"), project.logger)
-        this.project = project
-    }
-
-    void load() {
-        GradleRepositoryAdapter repo = GradleRepositoryAdapter.add(this.project.repositories, 'MODUTILS_DYNAMIC', this.getCacheRoot(), SimpleRepository.of(ArtifactProviderBuilder.begin(ArtifactIdentifier.class).provide(this)))
-        // Now we are added to the end of the list but we must be adde to the beginning so we are
-        // called before MCPRepo.
-        // Remove ourselves again
-        this.project.repositories.remove(repo)
-        // And add us to the front
-        this.project.repositories.add(0, repo)
-    }
-
-    @Override
-    protected File findFile(ArtifactIdentifier artifact) throws IOException {
-        if (artifact.getGroup() == "net.minecraft" && artifact.getName() == "mappings_custom") {
-            String ext = artifact.getExtension() == null ? "zip" : artifact.getExtension().toLowerCase()
-            java.nio.file.Path mcm = this.project.file('mappings.mcm').toPath()
-            if (!Files.exists(mcm)) {
-                throw new IOException("Can't get custom mappings: mappings.mcm does not exist.")
-            }
-            InputStream fin = Files.newInputStream(mcm)
-            String md5 = DigestUtils.md5Hex(fin)
-            fin.close()
-            java.nio.file.Path path = this.project.file('build/custom_mappings/mappings_' + project.mc_version.toString() + '_' + md5 + '.' + ext).toPath()
-            if (!Files.exists(path.getParent())) {
-                Files.createDirectories(path.getParent())
-            }
-            if (ext == "pom") {
-                if (!Files.exists(path)) {
-                    BufferedWriter w = Files.newBufferedWriter(path)
-                    w.write(new POMBuilder("net.minecraft", "mappings_custom", project.mc_version.toString() + "-" + md5).build() + "\n")
-                    w.close()
-                }
-                return path.toFile()
-            } else if (ext == "zip") {
-                if (!Files.exists(path)) {
-                    Map<String, String> vars = new HashMap<>()
-                    vars.put("mc", project.mc_version.toString())
-                    vars.put("out", '"' + StringEscapeUtils.escapeJava(path.toAbsolutePath().normalize().toString()) + '"')
-                    io.github.noeppi_noeppi.mappings.MCM.runFile(mcm, vars)
-                }
-                return path.toFile()
-            }
-        } else if (artifact.getGroup() == "net.minecraft" && artifact.getName() == "mappings_unofficial") {
-            String ext = artifact.getExtension() == null ? "zip" : artifact.getExtension().toLowerCase()
-            java.nio.file.Path path = this.project.file('build/custom_mappings/unofficial_' + project.mc_version.toString() + '_' + artifact.getVersion() + '.' + ext).toPath()
-            if (!Files.exists(path.getParent())) {
-                Files.createDirectories(path.getParent())
-            }
-            if (ext == "pom") {
-                if (!Files.exists(path)) {
-                    BufferedWriter w = Files.newBufferedWriter(path)
-                    w.write(new POMBuilder("net.minecraft", "mappings_unofficial", artifact.getVersion()).build() + "\n")
-                    w.close()
-                }
-                return path.toFile()
-            } else if (ext == "zip") {
-                if (!Files.exists(path)) {
-                    artifact.getVersion()
-                    List<String> fields = new ArrayList<>()
-                    List<String> methods = new ArrayList<>()
-                    List<String> params = new ArrayList<>()
-                    Function<URL, String> readURL = { url ->
-                        String baseVersion = null
-                        ZipInputStream zip = new ZipInputStream(url.openStream())
-                        for (ZipEntry entry = zip.nextEntry; entry != null; entry = zip.nextEntry) {
-                            if (entry.getName() == '.mcp_base' || entry.getName() == '.mcp_base') {
-                                baseVersion = new BufferedReader(new InputStreamReader(zip)).readLine()
-                            } else if (entry.getName() == 'fields.csv' || entry.getName() == '/fields.csv') {
-                                fields.addAll(new BufferedReader(new InputStreamReader(zip)).lines().collect(Collectors.toList()))
-                            } else if (entry.getName() == 'methods.csv' || entry.getName() == '/methods.csv') {
-                                methods.addAll(new BufferedReader(new InputStreamReader(zip)).lines().collect(Collectors.toList()))
-                            } else if (entry.getName() == 'params.csv' || entry.getName() == '/params.csv') {
-                                params.addAll(new BufferedReader(new InputStreamReader(zip)).lines().collect(Collectors.toList()))
-                            }
-                        }
-                        return baseVersion
-                    }
-                    String mcp_base = readURL.apply(new URL("https://noeppi-noeppi.github.io/MappingUtilities/mcp_unofficial/${artifact.getVersion()}.zip"))
-                    if (mcp_base == null) {
-                        println("MCP unofficial mappings have no MCP base.")
-                    } else {
-                        String mcp_channel = mcp_base.substring(0, mcp_base.indexOf('_'))
-                        String mcp_version = mcp_base.substring(mcp_base.indexOf('_') + 1)
-                        readURL.apply(new URL("https://maven.minecraftforge.net/de/oceanlabs/mcp/mcp_${mcp_channel}/${mcp_version}/mcp_${mcp_channel}-${mcp_version}.zip"))
-                    }
-                    ZipOutputStream zout = new ZipOutputStream(Files.newOutputStream(path))
-                    BufferedWriter w = new BufferedWriter(new OutputStreamWriter(zout))
-                    zout.putNextEntry(new ZipEntry('fields.csv'))
-                    fields.each { w.writeLine(it) }
-                    w.flush()
-                    zout.closeEntry()
-                    zout.putNextEntry(new ZipEntry('methods.csv'))
-                    methods.each { w.writeLine(it) }
-                    w.flush()
-                    zout.closeEntry()
-                    zout.putNextEntry(new ZipEntry('params.csv'))
-                    params.each { w.writeLine(it) }
-                    w.flush()
-                    zout.closeEntry()
-                    zout.close()
-                }
-                return path.toFile()
-            }
-        }
-        return null
     }
 }
