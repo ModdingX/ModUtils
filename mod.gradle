@@ -311,7 +311,7 @@ if (curseInfo() != null) {
             }
         }
     }
-    curseforge.dependsOn('reobfJar')
+    project.tasks.getByName('curseforge').dependsOn('reobfJar')
 }
 
 
