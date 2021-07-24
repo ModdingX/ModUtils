@@ -10,7 +10,7 @@ repositories {
 
 dependencies {
     classpath 'net.minecraftforge.gradle:ForgeGradle:5.1.5'
-    classpath 'io.github.noeppi_noeppi.tools:ModGradle:1.0.4'
+    classpath 'io.github.noeppi_noeppi.tools:ModGradle:1.0.5'
     classpath 'org.apache.maven:maven-artifact:3.8.1'
 //    classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     classpath 'gradle.plugin.com.matthewprenger:CurseGradle:1.4.0'
