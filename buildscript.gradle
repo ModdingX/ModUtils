@@ -16,4 +16,3 @@ dependencies {
     classpath 'gradle.plugin.com.matthewprenger:CurseGradle:1.4.0'
     classpath 'com.google.code.findbugs:jsr305:3.0.1'
 }
-
