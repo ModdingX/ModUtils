@@ -96,6 +96,7 @@ CurseInfo curseInfo() {
     }
 }
 
+
 // ***** Additional Checks ***** //
 
 if (hasMcUpdate() && !sourceMcUpdateVersion.containsVersion(new DefaultArtifactVersion(mcVersion()))) {
