@@ -4,13 +4,12 @@ repositories {
     maven { url = 'https://plugins.gradle.org/m2/' }
     maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
     maven { url = 'https://noeppi-noeppi.github.io/MinecraftUtilities/maven' }
-    maven { url = 'file:///home/tux/dev/util/MinecraftUtilities/maven' }
     mavenCentral()
 }
 
 dependencies {
     classpath 'net.minecraftforge.gradle:ForgeGradle:5.1.14'
-    classpath 'io.github.noeppi_noeppi.tools:ModGradle:1.0.11'
+    classpath 'io.github.noeppi_noeppi.tools:ModGradle:1.0.13'
     classpath 'org.apache.maven:maven-artifact:3.8.1'
 //    classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     classpath 'gradle.plugin.com.matthewprenger:CurseGradle:1.4.0'

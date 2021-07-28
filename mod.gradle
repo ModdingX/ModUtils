@@ -64,6 +64,10 @@ String mcVersion() {
     return project.forge_version.toString().strip().substring(0, project.forge_version.toString().strip().indexOf('-'))
 }
 
+boolean createSources() {
+    return project.hasProperty("sources") && Boolean.parseBoolean(project.getProperties().get("sources").toString())
+}
+
 class CurseInfo {
     final int projectId
     final String releaseType
@@ -121,6 +125,9 @@ if (hasMcUpdate()) {
     apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.mcupdate'
 }
 apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.meta'
+if (createSources()) {
+    apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.sourcejar'
+}
 if (hasMixin()) {
     throw new IllegalStateException("Can't use mixin: MixinGradle is currently not compatible with ForgeGradle 5.")
 }
@@ -275,6 +282,9 @@ if (localMaven() != null) {
                 artifactId = project.name
                 version = project.version
                 artifact jar
+                if (createSources()) {
+                    artifact sourceJar
+                }
                 pom {
                     licenses {
                         license {

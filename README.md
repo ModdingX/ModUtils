@@ -33,6 +33,7 @@ Now you can run `gradle setup` which will create some new files for your mod.
 | mappings | The mappings to use. This is optional. If left out, the official mappings will be used. Format is `channel_version`. |
 | local_maven | The local maven repository to use. This is used by the `publish` task and to determine the full version. If left out, publishing won't be available. |
 | mixins | Whether this project uses mixins. Either `true` or `false`. |
+| sources | Whether to generate SRG named sources jar. Either `true` or `false`. |
 | **license_name** | The name of the project's license. |
 | **license_url** | The url of the project's license. |
 | curse_project | The project id on CurseForge. This is optional. If left out, CurseForge upload does not work.  |
