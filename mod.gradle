@@ -55,6 +55,10 @@ boolean hasMcUpdate() {
     return project.hasProperty("mcupdate") && Boolean.parseBoolean(project.getProperties().get("mcupdate").toString())
 }
 
+boolean productionRuns() {
+    return project.hasProperty("production_runs") && Boolean.parseBoolean(project.getProperties().get("production_runs").toString())
+}
+
 @Nullable
 String localMaven() {
     return project.hasProperty("local_maven") ? project.getProperties().get("local_maven").toString() : null
@@ -186,6 +190,9 @@ minecraft {
     final Closure defaultRun = {
         property 'forge.logging.console.level', 'debug'
         property 'forge.logging.markers', 'REGISTRIES'
+        if (productionRuns()) {
+            jvmArg '-Dproduction=true'
+        }
         if (Versioning.getMixinVersion(mcVersion()) != null) {
             // Only add mixin related options if mixin is available
             property 'mixin.env.remapRefMap', 'true'
