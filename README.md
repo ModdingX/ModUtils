@@ -37,10 +37,19 @@ Now you can run `gradle setup` which will create some new files for your mod.
 | production_runs | Whether runs should simulate a production environment. |
 | **license_name** | The name of the project's license. |
 | **license_url** | The url of the project's license. |
-| curse_project | The project id on CurseForge. This is optional. If left out, CurseForge upload does not work.  |
-| curse_release | The release type on CurseForge. Default is `alpha`. Requires `curse_project`. |
-| curse_versions | The minecraft version-tags that should be added to a file on CurseForge (separated by comma). Default is the current minecraft version. Requires `curse_project`. |
-| curse_requirements | A list of projects that are required dependencies on CurseForge (separated by comma). Requires `curse_project`. |
-| curse_optionals | A list of projects that are optional dependencies on CurseForge (separated by comma). Requires `curse_project`. |
 
-When using the CurseForge update, you need to make your token available under the property `curse_auth`. You can use a secrets file for this as ModUtils will load [this](https://github.com/MinecraftModDevelopment/Gradle-Collection/blob/master/generic/secrets.gradle) gradle script when CurseForge is used.
+## Uploading to mod hosting sites
+
+ModUtils supports upload to [CurseForge](https://www.curseforge.com/minecraft/mc-mods) and [Modrinth](https://www.modrinth.com/mods). For each upload type, you can set the following properties: (Bold properties are required)
+
+| Property | Description |
+| :---: | :--- |
+| **project** | The project id of the mod. |
+| release | The release type. One of `alpha`, `beta` and `release`. Default is `alpha`. |
+| versions | The minecraft version-tags that should be added to a file (separated by comma). Default is the current minecraft version. |
+| requirements | A list of projects that are required dependencies (separated by comma) |
+| optionals | A list of projects that are optional dependencies (separated by comma) |
+
+To set a property, set `<name>_<property>` in `gradle.properties` where `<name>` is the website to upload to (`curse` or `modrinth`) and `<property>` is the property to set. If a property is not set in this format, the property `upload_<property>` is searched, so you can set properties for both CurseForge and Modrinth at the same time. However, you can't use `upload_project`.
+
+When using one of the upload targets, you need to make your token available under the property `<name>_auth` with `<name>` being the website to upload to (`curse` or `modrinth`). You can use a secrets file for this as ModUtils will load [this](https://github.com/MinecraftModDevelopment/Gradle-Collection/blob/master/generic/secrets.gradle) gradle script when upload is used.

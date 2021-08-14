@@ -87,18 +87,6 @@ class UploadInfo {
         this.requirements = requirements
         this.optionals = optionals
     }
-
-
-    @Override
-    public String toString() {
-        return "UploadInfo{" +
-                "projectId='" + projectId + '\'' +
-                ", releaseType='" + releaseType + '\'' +
-                ", gameVersions=" + gameVersions +
-                ", requirements=" + requirements +
-                ", optionals=" + optionals +
-                '}';
-    }
 }
 
 @Nullable
@@ -116,7 +104,7 @@ UploadInfo uploadInfo(String id) {
     if (project.hasProperty(id + '_project')) {
         String projectId = project.getProperties().get(id + '_project').toString()
         String releaseType = query('release', { it }, 'alpha')
-        List<String> gameVersions = query('versions', { it.split(',') }, [])
+        List<String> gameVersions = query('versions', { it.split(',') }, [ mcVersion() ])
         List<String> requirements = query('requirements', { it.split(',') }, [])
         List<String> optionals = query('optionals', { it.split(',') }, [])
         return new UploadInfo(projectId, releaseType, gameVersions, requirements, optionals)
