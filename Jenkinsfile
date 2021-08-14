@@ -34,6 +34,13 @@ pipeline {
                 sh './gradlew curseforge'
             }
         }*/
+        
+        /*stage('Upload artifacts to Modrinth') {
+            steps {
+                echo 'Uploading to Modrinth'
+                sh './gradlew modrinth'
+            }
+        }*/
 
         stage('Publish artifacts') {
             steps {

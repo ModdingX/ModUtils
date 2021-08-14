@@ -5,6 +5,7 @@ import org.apache.maven.artifact.versioning.VersionRange
 import javax.annotation.Nullable
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
+import java.util.function.Function
 import java.util.regex.Pattern
 
 buildscript {
@@ -72,34 +73,56 @@ boolean createSources() {
     return project.hasProperty("sources") && Boolean.parseBoolean(project.getProperties().get("sources").toString())
 }
 
-class CurseInfo {
-    final int projectId
+class UploadInfo {
+    final String projectId
     final String releaseType
     final List<String> gameVersions
     final List<String> requirements
     final List<String> optionals
 
-    CurseInfo(int projectId, String releaseType, List<String> gameVersions, List<String> requirements, List<String> optionals) {
+    UploadInfo(String projectId, String releaseType, List<String> gameVersions, List<String> requirements, List<String> optionals) {
         this.projectId = projectId
         this.releaseType = releaseType
         this.gameVersions = gameVersions
         this.requirements = requirements
         this.optionals = optionals
     }
+
+
+    @Override
+    public String toString() {
+        return "UploadInfo{" +
+                "projectId='" + projectId + '\'' +
+                ", releaseType='" + releaseType + '\'' +
+                ", gameVersions=" + gameVersions +
+                ", requirements=" + requirements +
+                ", optionals=" + optionals +
+                '}';
+    }
 }
 
 @Nullable
-CurseInfo curseInfo() {
-    if (project.hasProperty("curse_project")) {
-        int projectId = Integer.parseInt(project.getProperties().get("curse_project").toString())
-        String releaseType = project.hasProperty("curse_release") ? project.getProperties().get("curse_release").toString() : "alpha"
-        List<String> gameVersions = project.hasProperty("curse_versions") ? Arrays.asList(project.getProperties().get("curse_versions").toString().split(",")) : [ mcVersion() ]
-        List<String> requirements = project.hasProperty("curse_requirements") ? Arrays.asList(project.getProperties().get("curse_requirements").toString().split(",")) : []
-        List<String> optionals = project.hasProperty("curse_optionals") ? Arrays.asList(project.getProperties().get("curse_optionals").toString().split(",")) : []
-        return new CurseInfo(projectId, releaseType, gameVersions, requirements, optionals)
+UploadInfo uploadInfo(String id) {
+    // Don't use GStrings, it breaks
+    def query = { String name, Function<String, Object> mapper, Object defaultValue -> 
+        if (project.hasProperty(id + '_' + name)) {
+            return mapper.apply(project.getProperties().get(id + '_' + name).toString())
+        } else if (project.hasProperty('upload_' + name)) {
+            return mapper.apply(project.getProperties().get('upload_' + name).toString())
+        } else {
+            return defaultValue
+        }
+    }
+    if (project.hasProperty(id + '_project')) {
+        String projectId = project.getProperties().get(id + '_project').toString()
+        String releaseType = query('release', { it }, 'alpha')
+        List<String> gameVersions = query('versions', { it.split(',') }, [])
+        List<String> requirements = query('requirements', { it.split(',') }, [])
+        List<String> optionals = query('optionals', { it.split(',') }, [])
+        return new UploadInfo(projectId, releaseType, gameVersions, requirements, optionals)
     } else {
-        [ "curse_release", "curse_versions", "curse_requirements", "curse_optionals" ].stream().filter { project.hasProperty(it) }.findFirst()
-                .ifPresent { throw new IllegalStateException("${it} is not available without curse_project.") }
+        [ id + '_release', id + '_versions', id + '_requirements', id + '_optionals' ].stream().filter { project.hasProperty(it) }.findFirst()
+                .ifPresent { throw new IllegalStateException("${it} is not available without ${id}_project.") }
         return null
     }
 }
@@ -115,9 +138,10 @@ if (hasMixin() && Versioning.getMixinVersion(mcVersion()) == null) {
     throw new IllegalStateException("Mixin is not available for minecraft ${mcVersion()}")
 }
 
-// Trigger curseInfo once as it also does some error checking
-// so we can report an error as early as possible.
-curseInfo()
+final UploadInfo curseInfo = uploadInfo("curse")
+final UploadInfo modrinthInfo = uploadInfo("modrinth")
+
+final boolean hasUploadInfo = curseInfo != null || modrinthInfo != null
 
 
 // ***** Apply gradle plugins ***** //
@@ -138,8 +162,13 @@ if (hasMixin()) {
 if (localMaven() != null) {
     apply plugin: 'maven-publish'
 }
-if (curseInfo() != null) {
+if (curseInfo != null) {
     apply plugin: 'com.matthewprenger.cursegradle'
+}
+if (modrinthInfo != null) {
+    apply plugin: 'com.modrinth.minotaur'
+}
+if (hasUploadInfo) {
     apply from: 'https://raw.githubusercontent.com/MinecraftModDevelopment/Gradle-Collection/master/generic/secrets.gradle'
     apply from: 'https://raw.githubusercontent.com/MinecraftModDevelopment/Gradle-Collection/master/generic/markdown-git-changelog.gradle'
     loadSecrets()
@@ -311,32 +340,56 @@ if (localMaven() != null) {
     publish.dependsOn('reobfJar')
 }
 
-if (curseInfo() != null) {
-    CurseInfo info = curseInfo()
+if (curseInfo != null) {
     String curseChangelog = getGitChangelog()
     curseforge {
         apiKey = findProperty('curse_auth') ?: 0
         project {
-            id = Integer.toString(info.projectId)
-            releaseType = info.releaseType
+            id = curseInfo.projectId
+            releaseType = curseInfo.releaseType
             changelog = curseChangelog
             changelogType = 'markdown'
-            info.gameVersions.each { addGameVersion "${it.strip()}" }
+            curseInfo.gameVersions.each { addGameVersion "${it.strip()}" }
             mainArtifact(jar) {
-                if (!info.requirements.isEmpty()) {
+                if (!curseInfo.requirements.isEmpty()) {
                     relations {
-                        info.requirements.each { requiredDependency "${it.strip()}" }
+                        curseInfo.requirements.each { requiredDependency "${it.strip()}" }
                     }
                 }
-                if (!info.optionals.isEmpty()) {
+                if (!curseInfo.optionals.isEmpty()) {
                     relations {
-                        info.optionals.each { optionalDependency "${it.strip()}" }
+                        curseInfo.optionals.each { optionalDependency "${it.strip()}" }
                     }
                 }
             }
         }
     }
     project.tasks.getByName('curseforge').dependsOn('reobfJar')
+}
+
+if (modrinthInfo != null) {
+    String modrinthChangelog = getGitChangelog()
+    task modrinth(type: com.modrinth.minotaur.TaskModrinthUpload) {
+        token = findProperty('modrinth_auth') ?: 0
+        projectId = modrinthInfo.projectId
+        versionNumber = project.version
+        versionName = jar.getArchiveFileName().get()
+        uploadFile = jar
+
+        changelog = modrinthChangelog
+        switch (modrinthInfo.releaseType.toLowerCase(Locale.ROOT)) {
+            case "release": versionType = com.modrinth.minotaur.request.VersionType.RELEASE; break
+            case "beta": versionType = com.modrinth.minotaur.request.VersionType.BETA; break
+            default: versionType = com.modrinth.minotaur.request.VersionType.ALPHA; break
+        }
+        
+        modrinthInfo.gameVersions.each { addGameVersion it }
+        addLoader('forge')
+        
+        modrinthInfo.requirements.each { addDependency(it, com.modrinth.minotaur.request.Dependency.DependencyType.REQUIRED) }
+        modrinthInfo.optionals.each { addDependency(it, com.modrinth.minotaur.request.Dependency.DependencyType.OPTIONAL) }
+    }
+    project.tasks.getByName('modrinth').dependsOn('reobfJar')
 }
 
 
