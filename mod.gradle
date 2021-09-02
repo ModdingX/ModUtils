@@ -145,7 +145,7 @@ if (createSources()) {
     apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.sourcejar'
 }
 if (hasMixin()) {
-    throw new IllegalStateException("Can't use mixin: MixinGradle is currently not compatible with ForgeGradle 5.")
+    apply plugin: 'org.spongepowered.mixin'
 }
 if (localMaven() != null) {
     apply plugin: 'maven-publish'
@@ -190,6 +190,9 @@ repositories {
 
 dependencies {
     minecraft "net.minecraftforge:forge:${project.forge_version}"
+    if (hasMixin()) {
+        annotationProcessor "org.spongepowered:mixin:${Versioning.getMixinVersion(mcVersion()).release()}:processor"
+    }
 }
 
 
@@ -238,6 +241,15 @@ minecraft {
                 args '--mod', project.modid, '--all', '--output', file('src/generated/resources'), '--existing', file('src/main/resources')
             }.with(defaultRun)
         }
+    }
+}
+
+
+// ***** Mixin Configuration ***** //
+
+if (hasMixin()) {
+    mixin {
+        add sourceSets.main, "${project.modid}.refmap.json"
     }
 }
 
