@@ -136,6 +136,7 @@ final boolean hasUploadInfo = curseInfo != null || modrinthInfo != null
 
 apply plugin: 'java'
 apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'org.parchmentmc.librarian.forgegradle'
 apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.mapping'
 if (hasMcUpdate()) {
     apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.mcupdate'
