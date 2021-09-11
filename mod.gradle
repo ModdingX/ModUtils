@@ -172,7 +172,7 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(Versioning.getJavaVersio
 
 println "Java: ${System.getProperty('java.version')}   JVM: ${System.getProperty('java.vm.version')}(${System.getProperty('java.vendor')})   Arch: ${System.getProperty('os.arch')}"
 println "Mod: ${project.name}(${project.modid})   Group: ${project.group}   Version: ${project.version}"
-println "Minecraft: ${mcVersion()}   Target: java${java.toolchain.languageVersion.get()}"+ (hasMixin() ? "   Mixin: ${Versioning.getMixinVersion(mcVersion()).release()}" : '')
+println "Minecraft: ${mcVersion()}   Target: java${java.toolchain.languageVersion.get()}" + (hasMixin() ? "   Mixin: ${Versioning.getMixinVersion(mcVersion()).release()}" : '')
 println ''
 
 
@@ -352,13 +352,11 @@ if (curseInfo != null) {
             changelogType = 'markdown'
             curseInfo.gameVersions.each { addGameVersion "${it.strip()}" }
             mainArtifact(jar) {
-                if (!curseInfo.requirements.isEmpty()) {
-                    relations {
+                relations {
+                    if (!curseInfo.requirements.isEmpty()) {
                         curseInfo.requirements.each { requiredDependency "${it.strip()}" }
                     }
-                }
-                if (!curseInfo.optionals.isEmpty()) {
-                    relations {
+                    if (!curseInfo.optionals.isEmpty()) {
                         curseInfo.optionals.each { optionalDependency "${it.strip()}" }
                     }
                 }
