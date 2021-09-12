@@ -352,12 +352,14 @@ if (curseInfo != null) {
             changelogType = 'markdown'
             curseInfo.gameVersions.each { addGameVersion "${it.strip()}" }
             mainArtifact(jar) {
-                relations {
-                    if (!curseInfo.requirements.isEmpty()) {
-                        curseInfo.requirements.each { requiredDependency "${it.strip()}" }
-                    }
-                    if (!curseInfo.optionals.isEmpty()) {
-                        curseInfo.optionals.each { optionalDependency "${it.strip()}" }
+                if (!curseInfo.requirements.isEmpty() || !curseInfo.optionals.isEmpty()) {
+                    relations {
+                        if (!curseInfo.requirements.isEmpty()) {
+                            curseInfo.requirements.each { requiredDependency "${it.strip()}" }
+                        }
+                        if (!curseInfo.optionals.isEmpty()) {
+                            curseInfo.optionals.each { optionalDependency "${it.strip()}" }
+                        }
                     }
                 }
             }
