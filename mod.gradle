@@ -291,6 +291,10 @@ if (hasMcUpdate()) {
 
 // ***** Build Configuration ***** //
 
+processResources {
+    exclude('/.cache/**')
+}
+
 jar {
     manifest {
         attributes([
