@@ -295,6 +295,15 @@ processResources {
     exclude('/.cache/**')
 }
 
+compileJava {
+    options.compilerArgs += [
+            '-Amod.properties.mod_id=' + project.modid,
+            '-Amod.properties.mc_version=' + mcVersion(),
+            '-Amod.properties.mod_version=' + project.version,
+            '-Amod.properties.java_version=' + Versioning.getJavaVersion(mcVersion())
+    ]
+}
+
 jar {
     manifest {
         attributes([
