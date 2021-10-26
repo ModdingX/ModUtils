@@ -28,4 +28,4 @@ forge*changelog.txt
 
 # CoreMods
 *.d.ts
-*/tsconfig.json
+**/tsconfig.json
