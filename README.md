@@ -2,8 +2,6 @@
 
 This repository contains gradle scripts, and some data to remove the clutter from your mod's gradle files and make it easy to keep things updated.
 
-*Information about how to update from ModUtils v1 to v2 and from 1.16 to 1.17 can be found [here](./updateV2.md)*
-
 ## How to use
 
 First you need to create a gradle project and configure your `build.gradle` file like this:
