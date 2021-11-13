@@ -9,7 +9,7 @@ import java.util.function.Function
 import java.util.regex.Pattern
 
 buildscript {
-    project.ext { MODUTILS_VERSION = "v2" }
+    project.ext { MODUTILS_VERSION = "v3" }
     
     if (Files.isRegularFile(file('buildscript.gradle').toPath())) {
         println('Loading local buildscript.')
@@ -22,7 +22,7 @@ buildscript {
 // ***** ModUtils constants ***** //
 
 final VersionRange javaVersion = VersionRange.createFromVersionSpec('[16,)')
-final VersionRange gradleVersion = VersionRange.createFromVersionSpec('[7.1,8.0)')
+final VersionRange gradleVersion = VersionRange.createFromVersionSpec('[7.2,8.0)')
 final VersionRange sourceMcUpdateVersion = VersionRange.createFromVersionSpec('[1.16,1.17)')
 final List<String> requiredProperties = [ 'modid', 'group', 'base_version', 'forge_version', 'license_name', 'license_url' ]
 
@@ -139,6 +139,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
 apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.mapping'
 if (hasMcUpdate()) {
+    throw new IllegalStateException("mcupdate is currently not supported in ModUtils v3. Use v2 to update from 1.16 to 1.17")
     apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.mcupdate'
 }
 apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.meta'
@@ -267,13 +268,7 @@ setup {
 }
 
 if (hasMcUpdate()) {
-    mcupdateMappings {
-        if (project.hasProperty('mappings')) {
-            mappings = project.getProperties().get('mappings').toString()
-        } else {
-            mappings = 'official_' + mcVersion()
-        }
-    }
+    // Configure mcupdate here
     
     task modutils_removeUpdateProperty {
         doLast {

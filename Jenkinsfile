@@ -5,6 +5,9 @@ pipeline {
     tools {
         jdk 'java${jdk}'
     }
+    environment { 
+        MODGRADLE_CI = 'true'
+    }
     stages {
         stage('Clean') {
             steps {
