@@ -1,17 +1,5 @@
-import java.nio.file.Files
-
 buildscript {
-    if (Files.isRegularFile(file('buildscript.gradle').toPath())) {
-        println('Loading local buildscript.')
-        apply from: 'buildscript.gradle', to: buildscript
-    } else {
-        apply from: 'https://raw.githubusercontent.com/noeppi-noeppi/ModUtils/v2/buildscript.gradle', to: buildscript
-    }
+    apply from: 'buildscript.gradle', to: buildscript
 }
 
-if (Files.isRegularFile(file('buildscript.gradle').toPath())) {
-    println('Loading local mod-gradle.')
-    apply from: 'mod.gradle'
-} else {
-    apply from: 'https://raw.githubusercontent.com/noeppi-noeppi/ModUtils/v2/mod.gradle'
-}
+apply from: 'mod.gradle'
