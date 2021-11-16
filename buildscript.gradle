@@ -10,7 +10,7 @@ repositories {
 
 dependencies {
     classpath('net.minecraftforge.gradle:ForgeGradle') { version { strictly '5.1.24' } }
-    classpath('io.github.noeppi_noeppi.tools:ModGradle') { version { strictly '2.0.0' } }
+    classpath('io.github.noeppi_noeppi.tools:ModGradle') { version { strictly '2.0.1' } }
     classpath('org.parchmentmc:librarian') { version { strictly '1.1.4' } }
     classpath('gradle.plugin.com.matthewprenger:CurseGradle') { version { strictly '1.4.0' } }
     classpath('gradle.plugin.com.modrinth.minotaur:Minotaur') { version { strictly '1.2.1' } }
