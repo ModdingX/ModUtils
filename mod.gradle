@@ -23,7 +23,6 @@ buildscript {
 
 final VersionRange javaVersion = VersionRange.createFromVersionSpec('[16,)')
 final VersionRange gradleVersion = VersionRange.createFromVersionSpec('[7.2,8.0)')
-final VersionRange sourceMcUpdateVersion = VersionRange.createFromVersionSpec('[1.16,1.17)')
 final List<String> requiredProperties = [ 'modid', 'group', 'base_version', 'forge_version', 'license_name', 'license_url' ]
 
 
@@ -52,8 +51,9 @@ boolean hasMixin() {
     return project.hasProperty("mixins") && Boolean.parseBoolean(project.getProperties().get("mixins").toString())
 }
 
-boolean hasMcUpdate() {
-    return project.hasProperty("mcupdate") && Boolean.parseBoolean(project.getProperties().get("mcupdate").toString())
+@Nullable
+String getMcUpdateTarget() {
+    return project.hasProperty("mcupdate_target") ? project.getProperties().get("mcupdate_target").toString() : null
 }
 
 boolean productionRuns() {
@@ -118,10 +118,6 @@ UploadInfo uploadInfo(String id) {
 
 // ***** Additional Checks ***** //
 
-if (hasMcUpdate() && !sourceMcUpdateVersion.containsVersion(new DefaultArtifactVersion(mcVersion()))) {
-    throw new IllegalStateException("mcupdate currently only supports updating from ${sourceMcUpdateVersion}. Updating from minecraft ${mcVersion()} is not supported.")
-}
-
 if (hasMixin() && Versioning.getMixinVersion(mcVersion()) == null) {
     throw new IllegalStateException("Mixin is not available for minecraft ${mcVersion()}")
 }
@@ -138,8 +134,7 @@ apply plugin: 'java'
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
 apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.mapping'
-if (hasMcUpdate()) {
-    throw new IllegalStateException("mcupdate is currently not supported in ModUtils v3. Use v2 to update from 1.16 to 1.17")
+if (getMcUpdateTarget() != null) {
     apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.mcupdate'
 }
 apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.meta'
@@ -267,19 +262,23 @@ setup {
     repoBranch = project.MODUTILS_VERSION
 }
 
-if (hasMcUpdate()) {
+if (getMcUpdateTarget() != null) {
     // Configure mcupdate here
+    
+    mcupdate {
+        version getMcUpdateTarget()
+    }
     
     task modutils_removeUpdateProperty {
         doLast {
             if (Files.isRegularFile(project.file('gradle.properties').toPath())) {
                 List<String> properties = new ArrayList<>(Arrays.asList(Files.readString(project.file('gradle.properties').toPath()).split('\n')))
-                properties.removeIf(Pattern.compile('\\s*mcupdate\\s*=\\s*true\\s*', Pattern.CASE_INSENSITIVE).asMatchPredicate())
+                properties.removeIf(Pattern.compile('\\s*mcupdate_target\\s*=\\s*true\\s*', Pattern.CASE_INSENSITIVE).asMatchPredicate())
                 Files.writeString(project.file('gradle.properties').toPath(), String.join('\n', properties), StandardOpenOption.TRUNCATE_EXISTING)
             }
         }
     }
-    // Need to get the task like this as we have the mcupdate property that shades the task
+    // Need to get the task like this as we have the mcupdate extension that shades the task
     project.tasks.getByName('mcupdate').finalizedBy(modutils_removeUpdateProperty)
 }
 
