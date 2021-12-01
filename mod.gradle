@@ -278,8 +278,11 @@ if (getMcUpdateTarget() != null) {
             }
         }
     }
-    // Need to get the task like this as we have the mcupdate extension that shades the task
-    project.tasks.getByName('mcupdate').finalizedBy(modutils_removeUpdateProperty)
+    afterEvaluate {
+        // afterEvaluate as the mcupdate task does not exist yet
+        // Need to get the task like this as we have the mcupdate extension that shades the task
+        project.tasks.getByName('mcupdate').finalizedBy(modutils_removeUpdateProperty)
+    }
 }
 
 
