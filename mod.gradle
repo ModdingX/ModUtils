@@ -273,7 +273,7 @@ if (getMcUpdateTarget() != null) {
         doLast {
             if (Files.isRegularFile(project.file('gradle.properties').toPath())) {
                 List<String> properties = new ArrayList<>(Arrays.asList(Files.readString(project.file('gradle.properties').toPath()).split('\n')))
-                properties.removeIf(Pattern.compile('\\s*mcupdate_target\\s*=\\s*true\\s*', Pattern.CASE_INSENSITIVE).asMatchPredicate())
+                properties.removeIf(Pattern.compile('\\s*mcupdate_target\\s*=\\s*' + Pattern.quote(getMcUpdateTarget()) + '\\s*', Pattern.CASE_INSENSITIVE).asMatchPredicate())
                 Files.writeString(project.file('gradle.properties').toPath(), String.join('\n', properties), StandardOpenOption.TRUNCATE_EXISTING)
             }
         }
