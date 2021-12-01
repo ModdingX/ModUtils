@@ -32,6 +32,7 @@ Now you can run `gradle setup` which will create some new files for your mod.
 | local_maven | The local maven repository to use. This is used by the `publish` task and to determine the full version. If left out, publishing won't be available. |
 | mixins | Whether this project uses mixins. Either `true` or `false`. |
 | sources | Whether to generate SRG named sources jar. Either `true` or `false`. |
+| mcupdate_target | When this property is set, a mcupdate target is loaded from [here](https://github.com/noeppi-noeppi/MinecraftUtilities/tree/master/mcupdate). With the task `mcupdate` you can then prepare your project for the next major release of minecraft. In most cases this can be set to you'r minecraft version to update to. |
 | production_runs | Whether runs should simulate a production environment. |
 | **license_name** | The name of the project's license. |
 | **license_url** | The url of the project's license. |
