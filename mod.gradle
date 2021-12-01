@@ -21,7 +21,7 @@ buildscript {
 
 // ***** ModUtils constants ***** //
 
-final VersionRange javaVersion = VersionRange.createFromVersionSpec('[16,)')
+final VersionRange javaVersion = VersionRange.createFromVersionSpec('[17,)')
 final VersionRange gradleVersion = VersionRange.createFromVersionSpec('[7.2,8.0)')
 final List<String> requiredProperties = [ 'modid', 'group', 'base_version', 'forge_version', 'license_name', 'license_url' ]
 
