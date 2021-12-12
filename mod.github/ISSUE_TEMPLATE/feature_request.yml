@@ -3,7 +3,7 @@ description: Suggest an idea, or enhancement
 labels: enhancement
 body:
   - type: textarea
-    id: alternatives
+    id: description
     attributes:
       label: Describe your idea
       placeholder: A clear and reasoned description of your idea.

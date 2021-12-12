@@ -24,18 +24,21 @@ body:
     validations:
       required: true
   - type: input
+    id: log-file
     attributes:
       label: The latest.log file
       description: Please use a paste site such as [gist](https://gist.github.com/) / [pastebin](https://pastebin.com/) / etc.
     validations:
       required: true
   - type: textarea
+    id: description
     attributes:
       label: Issue description
       placeholder: A description of the issue.
     validations:
       required: true
   - type: textarea
+    id: steps-to-reproduce
     attributes:
       label: Steps to reproduce
       placeholder: |
@@ -43,6 +46,7 @@ body:
         2. Second step
         3. etc...
   - type: textarea
+    id: additional-information
     attributes:
       label: Other information
       description: Any other relevant information that is related to this issue, such as modpacks, other mods and their versions.
