@@ -27,7 +27,9 @@ body:
     id: log-file
     attributes:
       label: The latest.log file
-      description: Please use a paste site such as [gist](https://gist.github.com/) / [pastebin](https://pastebin.com/) / etc.
+      description: |
+        Please use a paste site such as [gist](https://gist.github.com/) / [pastebin](https://pastebin.com/) / etc.
+        For more information, see https://git.io/mclogs
     validations:
       required: true
   - type: textarea
