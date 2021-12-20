@@ -1,6 +1,6 @@
 name: Bug Report
 description: Report an issue with supported versions of ${name}
-labels: bug
+labels: [ bug ]
 body:
   - type: input
     id: mc-version
