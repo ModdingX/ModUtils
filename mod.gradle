@@ -202,7 +202,9 @@ minecraft {
     } else {
         mappings channel: 'official', version: mcVersion()
     }
-    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+    if (Files.exists(project.file('src/main/resources/META-INF/accesstransformer.cfg').toPath())) {
+        accessTransformer = project.file('src/main/resources/META-INF/accesstransformer.cfg')
+    }
 
     final Closure defaultRun = {
         property 'forge.logging.console.level', 'debug'
@@ -220,7 +222,7 @@ minecraft {
         }
         mods {
             "${project.modid}" {
-                source sourceSets.main
+
             }
         }
     }
@@ -241,6 +243,31 @@ minecraft {
     }
 }
 
+def addModSourceSetImpl(SourceSet sourceSet) {
+    final Closure runConfigClosure = {
+        mods {
+            "${project.modid}" {
+                source sourceSet
+            }
+        }
+    }
+    final int resourceVersion = Versioning.getResourceVersion(mcVersion())
+    minecraft {
+        runs {
+            client {}.with(runConfigClosure)
+            server {}.with(runConfigClosure)
+            if (resourceVersion >= 4) {
+                data {}.with(runConfigClosure)
+            }
+        }
+    }
+}
+
+ext {
+    addModSourceSet = { SourceSet sourceSet -> addModSourceSetImpl(sourceSet) }
+}
+
+project.addModSourceSet(sourceSets.main)
 
 // ***** Mixin Configuration ***** //
 
