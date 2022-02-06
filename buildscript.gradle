@@ -9,9 +9,9 @@ repositories {
 }
 
 dependencies {
-    classpath('net.minecraftforge.gradle:ForgeGradle') { version { strictly '5.1.26' } }
-    classpath('io.github.noeppi_noeppi.tools:ModGradle') { version { strictly '2.0.9' } }
-    classpath('org.parchmentmc:librarian') { version { strictly '1.1.4' } }
+    classpath('net.minecraftforge.gradle:ForgeGradle') { version { strictly '5.1.27' } }
+    classpath('io.github.noeppi_noeppi.tools:ModGradle') { version { strictly '2.0.11' } }
+    classpath('org.parchmentmc:librarian') { version { strictly '1.1.5' } }
     classpath('gradle.plugin.com.matthewprenger:CurseGradle') { version { strictly '1.4.0' } }
     classpath('gradle.plugin.com.modrinth.minotaur:Minotaur') { version { strictly '1.2.1' } }
     classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
@@ -19,6 +19,6 @@ dependencies {
     classpath 'com.google.code.findbugs:jsr305:3.0.1'
     
     // See https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44228
-    classpath('org.apache.logging.log4j:log4j-api') { version { strictly '[2.16.0,)' } }
-    classpath('org.apache.logging.log4j:log4j-core') { version { strictly '[2.16.0,)' } }
+    classpath('org.apache.logging.log4j:log4j-api') { version { strictly '[2.17.1,)' } }
+    classpath('org.apache.logging.log4j:log4j-core') { version { strictly '[2.17.1,)' } }
 }
