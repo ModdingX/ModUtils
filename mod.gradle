@@ -214,11 +214,11 @@ minecraft {
         }
         if (Versioning.getMixinVersion(mcVersion()) != null) {
             // Only add mixin related options if mixin is available
-            property 'mixin.debug.export', 'true'
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', project.createSrgToMcp.getOutput().get().getAsFile().toPath().toAbsolutePath().normalize().toString()
             if (hasMixin()) {
                 arg '-mixin.config=' + project.modid + '.mixins.json'
+                property 'mixin.debug.export', 'true'
             }
         }
         mods {
