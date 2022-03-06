@@ -442,3 +442,18 @@ if (hasMixin() && System.getProperty("idea.sync.active") == "true") {
         }
     }
 }
+
+// Use UTF-8
+afterEvaluate {
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+    }
+
+    tasks.withType(Test).configureEach {
+        defaultCharacterEncoding = 'UTF-8'
+    }
+
+    tasks.withType(Javadoc).configureEach {
+        options.encoding = 'UTF-8'
+    }
+}
