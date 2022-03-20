@@ -104,8 +104,8 @@ UploadInfo uploadInfo(String id) {
     if (project.hasProperty(id + '_project')) {
         String projectId = project.getProperties().get(id + '_project').toString()
         String releaseType = query('release', { it }, 'alpha')
-        List<String> gameVersions = query('versions', { it.split(',') }, [ mcVersion() ])
-        List<String> requirements = query('requirements', { it.split(',') }, [])
+        List<String> gameVersions = query('versions', { it.split(',')*.strip() }, [ mcVersion() ])
+        List<String> requirements = query('requirements', { it.split(',')*.strip() }, [])
         List<String> optionals = query('optionals', { it.split(',') }, [])
         return new UploadInfo(projectId, releaseType, gameVersions, requirements, optionals)
     } else {
