@@ -388,15 +388,15 @@ if (curseInfo != null) {
             releaseType = curseInfo.releaseType
             changelog = curseChangelog
             changelogType = 'markdown'
-            curseInfo.gameVersions.each { addGameVersion it }
+            curseInfo.gameVersions.each { addGameVersion "${it}" }
             mainArtifact(jar) {
                 if (!curseInfo.requirements.isEmpty() || !curseInfo.optionals.isEmpty()) {
                     relations {
                         if (!curseInfo.requirements.isEmpty()) {
-                            curseInfo.requirements.each { requiredDependency it }
+                            curseInfo.requirements.each { requiredDependency "${it}" }
                         }
                         if (!curseInfo.optionals.isEmpty()) {
-                            curseInfo.optionals.each { optionalDependency it }
+                            curseInfo.optionals.each { optionalDependency "${it}" }
                         }
                     }
                 }
