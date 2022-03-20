@@ -422,11 +422,11 @@ if (modrinthInfo != null) {
             default: versionType = com.modrinth.minotaur.request.VersionType.ALPHA; break
         }
         
-        modrinthInfo.gameVersions.each { addGameVersion it }
+        modrinthInfo.gameVersions.each { addGameVersion "${it.strip()}" }
         addLoader('forge')
         
-        modrinthInfo.requirements.each { addDependency(it, com.modrinth.minotaur.request.Dependency.DependencyType.REQUIRED) }
-        modrinthInfo.optionals.each { addDependency(it, com.modrinth.minotaur.request.Dependency.DependencyType.OPTIONAL) }
+        modrinthInfo.requirements.each { addDependency("${it.strip()}", com.modrinth.minotaur.request.Dependency.DependencyType.REQUIRED) }
+        modrinthInfo.optionals.each { addDependency("${it.strip()}", com.modrinth.minotaur.request.Dependency.DependencyType.OPTIONAL) }
     }
     project.tasks.getByName('modrinth').dependsOn('reobfJar')
 }
