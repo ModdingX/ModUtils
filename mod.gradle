@@ -94,9 +94,9 @@ UploadInfo uploadInfo(String id) {
     // Don't use GStrings, it breaks
     def query = { String name, Function<String, Object> mapper, Object defaultValue -> 
         if (project.hasProperty(id + '_' + name)) {
-            return mapper.apply(project.getProperties().get(id + '_' + name).toString())
+            return mapper.apply(project.getProperties().get(id + '_' + name).toString().strip())
         } else if (project.hasProperty('upload_' + name)) {
-            return mapper.apply(project.getProperties().get('upload_' + name).toString())
+            return mapper.apply(project.getProperties().get('upload_' + name).toString().strip())
         } else {
             return defaultValue
         }
@@ -388,15 +388,15 @@ if (curseInfo != null) {
             releaseType = curseInfo.releaseType
             changelog = curseChangelog
             changelogType = 'markdown'
-            curseInfo.gameVersions.each { addGameVersion "${it.strip()}" }
+            curseInfo.gameVersions.each { addGameVersion "${it}" }
             mainArtifact(jar) {
                 if (!curseInfo.requirements.isEmpty() || !curseInfo.optionals.isEmpty()) {
                     relations {
                         if (!curseInfo.requirements.isEmpty()) {
-                            curseInfo.requirements.each { requiredDependency "${it.strip()}" }
+                            curseInfo.requirements.each { requiredDependency "${it}" }
                         }
                         if (!curseInfo.optionals.isEmpty()) {
-                            curseInfo.optionals.each { optionalDependency "${it.strip()}" }
+                            curseInfo.optionals.each { optionalDependency "${it}" }
                         }
                     }
                 }
