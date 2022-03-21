@@ -106,7 +106,7 @@ UploadInfo uploadInfo(String id) {
         String releaseType = query('release', { it }, 'alpha')
         List<String> gameVersions = query('versions', { it.split(',')*.strip() }, [ mcVersion() ])
         List<String> requirements = query('requirements', { it.split(',')*.strip() }, [])
-        List<String> optionals = query('optionals', { it.split(',') }, [])
+        List<String> optionals = query('optionals', { it.split(',')*.strip() }, [])
         return new UploadInfo(projectId, releaseType, gameVersions, requirements, optionals)
     } else {
         [ id + '_release', id + '_versions', id + '_requirements', id + '_optionals' ].stream().filter { project.hasProperty(it) }.findFirst()
