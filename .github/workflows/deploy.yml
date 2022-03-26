@@ -27,7 +27,7 @@ jobs:
             cp base/*.gradle deploy/${BRANCH}
             if [[ -f deploy/${BRANCH}/mod.gradle ]]; then
               cp deploy/${BRANCH}/mod.gradle mod.gradle.tmp
-              echo -e "buildscript { project.ext { MODUTILS_VERSION = \"${BRANCH}\" } }\n\n" > deploy/${BRANCH}/mod.gradle
+              echo -e "buildscript { project.ext { MODUTILS_VERSION = \"${BRANCH}\" } }\n" > deploy/${BRANCH}/mod.gradle
               cat mod.gradle.tmp >> deploy/${BRANCH}/mod.gradle
             fi
           fi
