@@ -1,4 +1,5 @@
 buildscript {
+    project.ext { MODUTILS_VERSION = "v3" }
     apply from: 'buildscript.gradle', to: buildscript
 }
 
