@@ -406,8 +406,8 @@ if (curseInfo != null) {
 
 if (modrinthInfo != null) {
     String modrinthChangelog = getGitChangelog()
-    task modrinth(type: com.modrinth.minotaur.TaskModrinthUpload) {
-        token = findProperty('modrinth_auth') ?: 0
+    modrinth {
+        token = findProperty('modrinth_auth') ?: ''
         projectId = modrinthInfo.projectId
         versionNumber = project.version
         versionName = jar.getArchiveFileName().get()
