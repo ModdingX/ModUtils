@@ -13,7 +13,7 @@ dependencies {
     classpath('io.github.noeppi_noeppi.tools:ModGradle') { version { strictly '2.0.14' } }
     classpath('org.parchmentmc:librarian') { version { strictly '1.2.0' } }
     classpath('gradle.plugin.com.matthewprenger:CurseGradle') { version { strictly '1.4.0' } }
-    classpath('gradle.plugin.com.modrinth.minotaur:Minotaur') { version { strictly '1.2.1' } }
+    classpath('com.modrinth.minotaur:Minotaur') { version { strictly '2.1.1' } }
     classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     classpath 'org.apache.maven:maven-artifact:3.8.4'
     classpath 'com.google.code.findbugs:jsr305:3.0.2'

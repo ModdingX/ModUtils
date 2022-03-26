@@ -416,17 +416,13 @@ if (modrinthInfo != null) {
         uploadFile = jar
 
         changelog = modrinthChangelog
-        switch (modrinthInfo.releaseType.toLowerCase(Locale.ROOT)) {
-            case "release": versionType = com.modrinth.minotaur.request.VersionType.RELEASE; break
-            case "beta": versionType = com.modrinth.minotaur.request.VersionType.BETA; break
-            default: versionType = com.modrinth.minotaur.request.VersionType.ALPHA; break
-        }
-        
-        modrinthInfo.gameVersions.each { addGameVersion it }
-        addLoader('forge')
-        
-        modrinthInfo.requirements.each { addDependency(it, com.modrinth.minotaur.request.Dependency.DependencyType.REQUIRED) }
-        modrinthInfo.optionals.each { addDependency(it, com.modrinth.minotaur.request.Dependency.DependencyType.OPTIONAL) }
+        versionType = modrinthInfo.releaseType
+        gameVersions = modrinthInfo.gameVersions
+        loaders = ["forge"]
+
+        dependencies = []
+        modrinthInfo.requirements.each { dependencies.add(new com.modrinth.minotaur.dependencies.ModDependency(it, "required")) }
+        modrinthInfo.optionals.each { dependencies.add(new com.modrinth.minotaur.dependencies.ModDependency(it, "optional")) }
     }
     project.tasks.getByName('modrinth').dependsOn('reobfJar')
 }
