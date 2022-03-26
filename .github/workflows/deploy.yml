@@ -25,6 +25,9 @@ jobs:
             rm -rf deploy/${BRANCH}
             mkdir -p deploy/${BRANCH}
             cp base/*.gradle deploy/${BRANCH}
+            if [[ -f deploy/${BRANCH}/mod.gradle ]]; then
+              (echo -e "buildscript { project.ext { MODUTILS_VERSION = \"${BRANCH}\" } }\n"; cat deploy/${BRANCH}/mod.gradle) > deploy/${BRANCH}/mod.gradle
+            fi
           fi
 
       - name: 'Push'
