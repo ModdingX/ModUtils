@@ -52,3 +52,17 @@ ModUtils supports upload to [CurseForge](https://www.curseforge.com/minecraft/mc
 To set a property, set `<name>_<property>` in `gradle.properties` where `<name>` is the website to upload to (`curse` or `modrinth`) and `<property>` is the property to set. If a property is not set in this format, the property `upload_<property>` is searched, so you can set properties for both CurseForge and Modrinth at the same time. However, you can't use `upload_project`.
 
 When using one of the upload targets, you need to make your token available under the property `<name>_auth` with `<name>` being the website to upload to (`curse` or `modrinth`). You can use a secrets file for this as ModUtils will load [this](https://github.com/MinecraftModDevelopment/Gradle-Collection/blob/master/generic/secrets.gradle) gradle script when upload is used.
+
+## Experimental Features
+
+The [experimental](https://github.com/noeppi-noeppi/ModUtils/tree/experimental) branch contains things that have not yet been tested enough to go into the main branch or contain breaking changes. Use it at your own risk. To apply it, use:
+
+```groovy
+buildscript {
+    apply from: 'https://noeppi-noeppi.github.io/ModUtils/experimental/buildscript.gradle', to: buildscript
+}
+
+apply from: 'https://noeppi-noeppi.github.io/ModUtils/experimental/mod.gradle'
+```
+
+Any pull request that is not a bugfix for an older version must target the experimental branch.
