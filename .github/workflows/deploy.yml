@@ -3,7 +3,7 @@ on: push
 
 jobs:
   deploy:
-    if: startsWith(github.repository, 'noeppi-noeppi/') # don't run this in forks
+    if: startsWith(github.repository, 'ModdingX/') # don't run this in forks
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout Base Branch'
