@@ -1,6 +1,6 @@
 buildscript { project.ext { MODUTILS_VERSION = "experimental" } }
 
-import io.github.noeppi_noeppi.tools.modgradle.api.Versioning
+import org.moddingx.modgradle.api.Versioning
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion
 import org.apache.maven.artifact.versioning.VersionRange
 
@@ -15,14 +15,14 @@ buildscript {
         println('Loading local buildscript.')
         apply from: "buildscript.gradle", to: buildscript
     } else {
-        apply from: "https://noeppi-noeppi.github.io/ModUtils/${MODUTILS_VERSION}/buildscript.gradle", to: buildscript
+        apply from: "https://moddingx.github.io/ModUtils/${MODUTILS_VERSION}/buildscript.gradle", to: buildscript
     }
 }
 
 // ***** ModUtils constants ***** //
 
 final VersionRange javaVersion = VersionRange.createFromVersionSpec('[17,)')
-final VersionRange gradleVersion = VersionRange.createFromVersionSpec('[7.2,8.0)')
+final VersionRange gradleVersion = VersionRange.createFromVersionSpec('[7.4.2,8.0)')
 final List<String> requiredProperties = [ 'modid', 'group', 'base_version', 'forge_version', 'license_name', 'license_url' ]
 
 
@@ -37,7 +37,7 @@ if (!gradleVersion.containsVersion(new DefaultArtifactVersion(gradle.gradleVersi
 }
 
 if (!Files.isRegularFile(file('gradle.properties').toPath())) {
-    Files.copy(new URL("https://raw.githubusercontent.com/noeppi-noeppi/ModUtils/${MODUTILS_VERSION}/gradle.properties").openStream(), file('gradle.properties').toPath())
+    Files.copy(new URL("https://raw.githubusercontent.com/ModdingX/ModUtils/${MODUTILS_VERSION}/gradle.properties").openStream(), file('gradle.properties').toPath())
     throw new RuntimeException("Default gradle.properties file created. Re-run your build now.")
 }
 
@@ -133,13 +133,13 @@ final boolean hasUploadInfo = curseInfo != null || modrinthInfo != null
 apply plugin: 'java'
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
-apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.mapping'
+apply plugin: 'org.moddingx.modgradle.mapping'
 if (getMcUpdateTarget() != null) {
-    apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.mcupdate'
+    apply plugin: 'org.moddingx.modgradle.mcupdate'
 }
-apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.meta'
+apply plugin: 'org.moddingx.modgradle.meta'
 if (createSources()) {
-    apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.sourcejar'
+    apply plugin: 'org.moddingx.modgradle.sourcejar'
 }
 if (hasMixin()) {
     apply plugin: 'org.spongepowered.mixin'
@@ -179,10 +179,10 @@ sourceSets.main.resources {
 }
 
 repositories {
-    maven { url = 'https://maven.minecraftforge.net/' }
-    maven { url = 'https://libraries.minecraft.net/' }
-    maven { url = 'https://noeppi-noeppi.github.io/MinecraftUtilities/maven' }
-    maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+    maven { url = 'https://maven.moddingx.org' }
+    maven { url = 'https://maven.minecraftforge.net' }
+    maven { url = 'https://libraries.minecraft.net' }
+    maven { url = 'https://repo.spongepowered.org/repository/maven-public' }
 }
 
 dependencies {
@@ -286,7 +286,7 @@ setup {
     license = project.license_name.toString()
     licenseUrl = new URL(project.license_url.toString())
     mixin = hasMixin()
-    repo = new URL("https://github.com/noeppi-noeppi/ModUtils.git")
+    repo = new URL("https://github.com/ModdingX/ModUtils.git")
     repoBranch = project.MODUTILS_VERSION
 }
 
