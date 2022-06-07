@@ -59,10 +59,10 @@ The [experimental](https://github.com/noeppi-noeppi/ModUtils/tree/experimental) 
 
 ```groovy
 buildscript {
-    apply from: 'https://noeppi-noeppi.github.io/ModUtils/experimental/buildscript.gradle', to: buildscript
+    apply from: 'https://moddingx.github.io/ModUtils/experimental/buildscript.gradle', to: buildscript
 }
 
-apply from: 'https://noeppi-noeppi.github.io/ModUtils/experimental/mod.gradle'
+apply from: 'https://moddingx.github.io/ModUtils/experimental/mod.gradle'
 ```
 
 Any pull request that is not a bugfix for an older version must target the experimental branch.
