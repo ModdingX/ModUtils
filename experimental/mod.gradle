@@ -1,0 +1,455 @@
+buildscript { project.ext { MODUTILS_VERSION = "experimental" } }
+
+import io.github.noeppi_noeppi.tools.modgradle.api.Versioning
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion
+import org.apache.maven.artifact.versioning.VersionRange
+
+import javax.annotation.Nullable
+import java.nio.file.Files
+import java.nio.file.StandardOpenOption
+import java.util.function.Function
+import java.util.regex.Pattern
+
+buildscript {
+    if (Files.isRegularFile(file('buildscript.gradle').toPath())) {
+        println('Loading local buildscript.')
+        apply from: "buildscript.gradle", to: buildscript
+    } else {
+        apply from: "https://noeppi-noeppi.github.io/ModUtils/${MODUTILS_VERSION}/buildscript.gradle", to: buildscript
+    }
+}
+
+// ***** ModUtils constants ***** //
+
+final VersionRange javaVersion = VersionRange.createFromVersionSpec('[17,)')
+final VersionRange gradleVersion = VersionRange.createFromVersionSpec('[7.2,8.0)')
+final List<String> requiredProperties = [ 'modid', 'group', 'base_version', 'forge_version', 'license_name', 'license_url' ]
+
+
+// ***** Basic requirements *****//
+
+if (!javaVersion.containsVersion(new DefaultArtifactVersion(System.getProperty('java.version')))) {
+    throw new IllegalStateException("Java version ${System.getProperty('java.version')} does not match required version range: ${javaVersion}")
+}
+
+if (!gradleVersion.containsVersion(new DefaultArtifactVersion(gradle.gradleVersion))) {
+    throw new IllegalStateException("Gradle version ${gradle.gradleVersion} does not match required version range: ${gradleVersion}")
+}
+
+if (!Files.isRegularFile(file('gradle.properties').toPath())) {
+    Files.copy(new URL("https://raw.githubusercontent.com/noeppi-noeppi/ModUtils/${MODUTILS_VERSION}/gradle.properties").openStream(), file('gradle.properties').toPath())
+    throw new RuntimeException("Default gradle.properties file created. Re-run your build now.")
+}
+
+requiredProperties.stream().filter { !project.hasProperty(it) }.findFirst()
+        .ifPresent { throw new IllegalStateException("${it} should be defined in gradle.properties.") }
+
+
+// ***** Utility functions ***** //
+
+boolean hasMixin() {
+    return project.hasProperty("mixins") && Boolean.parseBoolean(project.getProperties().get("mixins").toString())
+}
+
+@Nullable
+String getMcUpdateTarget() {
+    return project.hasProperty("mcupdate_target") ? project.getProperties().get("mcupdate_target").toString() : null
+}
+
+boolean productionRuns() {
+    return project.hasProperty("production_runs") && Boolean.parseBoolean(project.getProperties().get("production_runs").toString())
+}
+
+@Nullable
+String localMaven() {
+    return project.hasProperty("local_maven") ? project.getProperties().get("local_maven").toString() : null
+}
+
+String mcVersion() {
+    return project.forge_version.toString().strip().substring(0, project.forge_version.toString().strip().indexOf('-'))
+}
+
+boolean createSources() {
+    return project.hasProperty("sources") && Boolean.parseBoolean(project.getProperties().get("sources").toString())
+}
+
+class UploadInfo {
+    final String projectId
+    final String releaseType
+    final List<String> gameVersions
+    final List<String> requirements
+    final List<String> optionals
+
+    UploadInfo(String projectId, String releaseType, List<String> gameVersions, List<String> requirements, List<String> optionals) {
+        this.projectId = projectId
+        this.releaseType = releaseType
+        this.gameVersions = gameVersions
+        this.requirements = requirements
+        this.optionals = optionals
+    }
+}
+
+@Nullable
+UploadInfo uploadInfo(String id) {
+    // Don't use GStrings, it breaks
+    def query = { String name, Function<String, Object> mapper, Object defaultValue -> 
+        if (project.hasProperty(id + '_' + name)) {
+            return mapper.apply(project.getProperties().get(id + '_' + name).toString().strip())
+        } else if (project.hasProperty('upload_' + name)) {
+            return mapper.apply(project.getProperties().get('upload_' + name).toString().strip())
+        } else {
+            return defaultValue
+        }
+    }
+    if (project.hasProperty(id + '_project')) {
+        String projectId = project.getProperties().get(id + '_project').toString()
+        String releaseType = query('release', { it }, 'alpha')
+        List<String> gameVersions = query('versions', { it.split(',')*.strip() }, [ mcVersion() ])
+        List<String> requirements = query('requirements', { it.split(',')*.strip() }, [])
+        List<String> optionals = query('optionals', { it.split(',')*.strip() }, [])
+        return new UploadInfo(projectId, releaseType, gameVersions, requirements, optionals)
+    } else {
+        [ id + '_release', id + '_versions', id + '_requirements', id + '_optionals' ].stream().filter { project.hasProperty(it) }.findFirst()
+                .ifPresent { throw new IllegalStateException("${it} is not available without ${id}_project.") }
+        return null
+    }
+}
+
+
+// ***** Additional Checks ***** //
+
+if (hasMixin() && Versioning.getMixinVersion(mcVersion()) == null) {
+    throw new IllegalStateException("Mixin is not available for minecraft ${mcVersion()}")
+}
+
+final UploadInfo curseInfo = uploadInfo("curse")
+final UploadInfo modrinthInfo = uploadInfo("modrinth")
+
+final boolean hasUploadInfo = curseInfo != null || modrinthInfo != null
+
+
+// ***** Apply gradle plugins ***** //
+
+apply plugin: 'java'
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'org.parchmentmc.librarian.forgegradle'
+apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.mapping'
+if (getMcUpdateTarget() != null) {
+    apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.mcupdate'
+}
+apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.meta'
+if (createSources()) {
+    apply plugin: 'io.github.noeppi_noeppi.tools.modgradle.sourcejar'
+}
+if (hasMixin()) {
+    apply plugin: 'org.spongepowered.mixin'
+}
+if (localMaven() != null) {
+    apply plugin: 'maven-publish'
+}
+if (curseInfo != null) {
+    apply plugin: 'com.matthewprenger.cursegradle'
+}
+if (modrinthInfo != null) {
+    apply plugin: 'com.modrinth.minotaur'
+}
+if (hasUploadInfo) {
+    apply from: 'https://raw.githubusercontent.com/MinecraftModDevelopment/Gradle-Collection/master/generic/secrets.gradle'
+    apply from: 'https://raw.githubusercontent.com/MinecraftModDevelopment/Gradle-Collection/master/generic/markdown-git-changelog.gradle'
+    loadSecrets()
+}
+
+
+// ***** Base Project information ***** //
+
+archivesBaseName = project.name
+version = (localMaven() == null ? "${mcVersion()}-${project.base_version}" : Versioning.getVersion(project, "${mcVersion()}-${project.base_version}", localMaven()))
+java.toolchain.languageVersion = JavaLanguageVersion.of(Versioning.getJavaVersion(mcVersion()))
+
+println "Java: ${System.getProperty('java.version')}   JVM: ${System.getProperty('java.vm.version')}(${System.getProperty('java.vendor')})   Arch: ${System.getProperty('os.arch')}"
+println "Mod: ${project.name}(${project.modid})   Group: ${project.group}   Version: ${project.version}"
+println "Minecraft: ${mcVersion()}   Target: java${java.toolchain.languageVersion.get()}" + (hasMixin() ? "   Mixin: ${Versioning.getMixinVersion(mcVersion()).release()}" : '')
+println ''
+
+
+// ***** Project Configuration ***** //
+
+sourceSets.main.resources {
+    srcDir 'src/generated/resources'
+}
+
+repositories {
+    maven { url = 'https://maven.minecraftforge.net/' }
+    maven { url = 'https://libraries.minecraft.net/' }
+    maven { url = 'https://noeppi-noeppi.github.io/MinecraftUtilities/maven' }
+    maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${project.forge_version}"
+    if (hasMixin()) {
+        annotationProcessor "org.spongepowered:mixin:${Versioning.getMixinVersion(mcVersion()).release()}:processor"
+    }
+}
+
+
+// ***** Minecraft Configuration ***** //
+
+minecraft {
+    if (project.hasProperty('mappings')) {
+        String mappingsStr = project.getProperties().get('mappings').toString()
+        mappings channel: mappingsStr.substring(0, mappingsStr.indexOf('_')), version: mappingsStr.substring(mappingsStr.indexOf('_') + 1)
+    } else {
+        mappings channel: 'official', version: mcVersion()
+    }
+    if (Files.exists(project.file('src/main/resources/META-INF/accesstransformer.cfg').toPath())) {
+        accessTransformer = project.file('src/main/resources/META-INF/accesstransformer.cfg')
+    }
+
+    final Closure defaultRun = {
+        property 'forge.logging.console.level', 'debug'
+        property 'forge.logging.markers', 'REGISTRIES'
+        if (productionRuns()) {
+            jvmArg '-Dproduction=true'
+        }
+        if (Versioning.getMixinVersion(mcVersion()) != null) {
+            // Only add mixin related options if mixin is available
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', project.createSrgToMcp.getOutput().get().getAsFile().toPath().toAbsolutePath().normalize().toString()
+            if (hasMixin()) {
+                arg '-mixin.config=' + project.modid + '.mixins.json'
+                property 'mixin.debug.export', 'true'
+            }
+        }
+        mods {
+            "${project.modid}" {
+
+            }
+        }
+    }
+    final int resourceVersion = Versioning.getResourceVersion(mcVersion())
+    runs {
+        client {
+            workingDirectory project.file('runClient')
+        }.with(defaultRun)
+        server {
+            workingDirectory project.file('runServer')
+        }.with(defaultRun)
+        if (resourceVersion >= 4) {
+            data {
+                workingDirectory project.file('runData')
+                args '--mod', project.modid, '--all', '--output', file('src/generated/resources'), '--existing', file('src/main/resources')
+            }.with(defaultRun)
+        }
+    }
+}
+
+def addModSourceSetImpl(SourceSet sourceSet) {
+    final Closure runConfigClosure = {
+        mods {
+            "${project.modid}" {
+                source sourceSet
+            }
+        }
+    }
+    final int resourceVersion = Versioning.getResourceVersion(mcVersion())
+    minecraft {
+        runs {
+            client {}.with(runConfigClosure)
+            server {}.with(runConfigClosure)
+            if (resourceVersion >= 4) {
+                data {}.with(runConfigClosure)
+            }
+        }
+    }
+}
+
+ext {
+    addModSourceSet = { SourceSet sourceSet -> addModSourceSetImpl(sourceSet) }
+}
+
+project.addModSourceSet(sourceSets.main)
+
+// ***** Mixin Configuration ***** //
+
+if (hasMixin()) {
+    mixin {
+        add sourceSets.main, "${project.modid}.refmap.json"
+    }
+}
+
+
+// ***** ModGradle Configuration ***** //
+
+setup {
+    modid = project.modid
+    license = project.license_name.toString()
+    licenseUrl = new URL(project.license_url.toString())
+    mixin = hasMixin()
+    repo = new URL("https://github.com/noeppi-noeppi/ModUtils.git")
+    repoBranch = project.MODUTILS_VERSION
+}
+
+if (getMcUpdateTarget() != null) {
+    // Configure mcupdate here
+    
+    mcupdate {
+        version getMcUpdateTarget()
+    }
+    
+    task modutils_removeUpdateProperty {
+        doLast {
+            if (Files.isRegularFile(project.file('gradle.properties').toPath())) {
+                List<String> properties = new ArrayList<>(Arrays.asList(Files.readString(project.file('gradle.properties').toPath()).split('\n')))
+                properties.removeIf(Pattern.compile('\\s*mcupdate_target\\s*=\\s*' + Pattern.quote(getMcUpdateTarget()) + '\\s*', Pattern.CASE_INSENSITIVE).asMatchPredicate())
+                Files.writeString(project.file('gradle.properties').toPath(), String.join('\n', properties), StandardOpenOption.TRUNCATE_EXISTING)
+            }
+        }
+    }
+    afterEvaluate {
+        // afterEvaluate as the mcupdate task does not exist yet
+        // Need to get the task like this as we have the mcupdate extension that shades the task
+        project.tasks.getByName('mcupdate').finalizedBy(modutils_removeUpdateProperty)
+    }
+}
+
+
+// ***** Build Configuration ***** //
+
+processResources {
+    exclude('/.cache/**')
+}
+
+compileJava {
+    options.compilerArgs += [
+            '-Amod.properties.mod_id=' + project.modid,
+            '-Amod.properties.mc_version=' + mcVersion(),
+            '-Amod.properties.mod_version=' + project.version,
+            '-Amod.properties.java_version=' + Versioning.getJavaVersion(mcVersion())
+    ]
+}
+
+jar {
+    manifest {
+        attributes([
+                'Specification-Title': project.modid,
+                'Specification-Version': '1',
+                "Implementation-Title": project.name,
+                "Implementation-Version": project.version,
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                "Automatic-Module-Name": "mcmods.${project.modid}"
+        ])
+        if (hasMixin()) {
+            attributes.put('MixinConfigs', "${project.modid}.mixins.json")
+        }
+    }
+}
+jar.finalizedBy('reobfJar')
+
+
+// ***** Publish Configuration ***** //
+
+if (localMaven() != null) {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                groupId = project.group
+                artifactId = project.name
+                version = project.version
+                artifact jar
+                if (createSources()) {
+                    artifact sourceJar
+                }
+                pom {
+                    licenses {
+                        license {
+                            name = project.license_name
+                            url = project.license_url
+                        }
+                    }
+                }
+            }
+        }
+        repositories {
+            maven {
+                url localMaven()
+            }
+        }
+    }
+    publish.dependsOn('reobfJar')
+}
+
+if (curseInfo != null) {
+    String curseChangelog = getGitChangelog()
+    curseforge {
+        apiKey = findProperty('curse_auth') ?: 0
+        project {
+            id = curseInfo.projectId
+            releaseType = curseInfo.releaseType
+            changelog = curseChangelog
+            changelogType = 'markdown'
+            curseInfo.gameVersions.each { addGameVersion "${it}" }
+            mainArtifact(jar) {
+                if (!curseInfo.requirements.isEmpty() || !curseInfo.optionals.isEmpty()) {
+                    relations {
+                        if (!curseInfo.requirements.isEmpty()) {
+                            curseInfo.requirements.each { requiredDependency "${it}" }
+                        }
+                        if (!curseInfo.optionals.isEmpty()) {
+                            curseInfo.optionals.each { optionalDependency "${it}" }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    project.tasks.getByName('curseforge').dependsOn('reobfJar')
+}
+
+if (modrinthInfo != null) {
+    String modrinthChangelog = getGitChangelog()
+    modrinth {
+        token = findProperty('modrinth_auth') ?: ''
+        projectId = modrinthInfo.projectId
+        versionNumber = project.version
+        versionName = jar.getArchiveFileName().get()
+        uploadFile = jar
+
+        changelog = modrinthChangelog
+        versionType = modrinthInfo.releaseType
+        gameVersions = modrinthInfo.gameVersions
+        loaders = ["forge"]
+
+        dependencies = []
+        modrinthInfo.requirements.each { dependencies.add(new com.modrinth.minotaur.dependencies.ModDependency(it, "required")) }
+        modrinthInfo.optionals.each { dependencies.add(new com.modrinth.minotaur.dependencies.ModDependency(it, "optional")) }
+    }
+    project.tasks.getByName('modrinth').dependsOn('reobfJar')
+}
+
+
+// ***** Miscellaneous ***** //
+
+// Prevent Mixin annotation processor from getting into IDEA's annotation processor settings
+if (hasMixin() && System.getProperty("idea.sync.active") == "true") {
+    afterEvaluate {
+        tasks.withType(JavaCompile).all {
+            it.options.annotationProcessorPath = files()
+        }
+    }
+}
+
+// Use UTF-8
+afterEvaluate {
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+    }
+
+    tasks.withType(Test).configureEach {
+        defaultCharacterEncoding = 'UTF-8'
+    }
+
+    tasks.withType(Javadoc).configureEach {
+        options.encoding = 'UTF-8'
+    }
+}
