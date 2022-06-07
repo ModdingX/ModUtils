@@ -8,10 +8,10 @@ First you need to create a gradle project and configure your `build.gradle` file
 
 ```groovy
 buildscript {
-    apply from: 'https://moddingx.github.io/ModUtils/v3/buildscript.gradle', to: buildscript
+    apply from: 'https://moddingx.github.io/ModUtils/v4/buildscript.gradle', to: buildscript
 }
 
-apply from: 'https://moddingx.github.io/ModUtils/v3/mod.gradle'
+apply from: 'https://moddingx.github.io/ModUtils/v4/mod.gradle'
 ```
 
 After that, you can import the project in your IDE. This will fail the first time, but you'll get a new file called `gradle.properties`. Then you should configure this file. See section Properties.
@@ -22,20 +22,20 @@ Now you can run `gradle setup` which will create some new files for your mod.
 
 `gradle.properties` contains some properties that you should fill in. (Bold properties are required)
 
-| Property | Description |
-| :---: | :--- |
-| **modid** | The Mod Id |
-| **group** | The maven group fo the mod |
-| **base_version** | The base version of the mod. This is not necessarily the full version. The full version is determined by the file found in the local maven repository defined by `local_maven`. It'll always be the base version plus a dot followed by a number that is one higher than the highest number of all files in the maven that start with this base version. If you don't set a `local_maven`, version is just set to `base_version`.  |
-| **forge_version** | The forge version to use. For example `1.16.5-36.1.65`. This is also used to determine the minecraft version to use. |
-| mappings | The mappings to use. This is optional. If left out, the official mappings will be used. Format is `channel_version`. |
-| local_maven | The local maven repository to use. This is used by the `publish` task and to determine the full version. If left out, publishing won't be available. |
-| mixins | Whether this project uses mixins. Either `true` or `false`. |
-| sources | Whether to generate SRG named sources jar. Either `true` or `false`. |
-| mcupdate_target | When this property is set, a mcupdate target is loaded from [here](https://github.com/noeppi-noeppi/MinecraftUtilities/tree/master/mcupdate). With the task `mcupdate` you can then prepare your project for the next major release of minecraft. In most cases this can be set to you'r minecraft version to update to. |
-| production_runs | Whether runs should simulate a production environment. |
-| **license_name** | The name of the project's license. |
-| **license_url** | The url of the project's license. |
+| Property | Description                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| :---: |:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **modid** | The Mod Id                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| **group** | The maven group fo the mod                                                                                                                                                                                                                                                                                                                                                                                                        |
+| **base_version** | The base version of the mod. This is not necessarily the full version. The full version is determined by the file found in the local maven repository defined by `local_maven`. It'll always be the base version plus a dot followed by a number that is one higher than the highest number of all files in the maven that start with this base version. If you don't set a `local_maven`, version is just set to `base_version`. |
+| **forge_version** | The forge version to use. For example `1.16.5-36.1.65`. This is also used to determine the minecraft version to use.                                                                                                                                                                                                                                                                                                              |
+| mappings | The mappings to use. This is optional. If left out, the official mappings will be used. Format is `channel_version`.                                                                                                                                                                                                                                                                                                              |
+| local_maven | The local maven repository to use. This is used by the `publish` task and to determine the full version. If left out, publishing won't be available.                                                                                                                                                                                                                                                                              |
+| mixins | Whether this project uses mixins. Either `true` or `false`.                                                                                                                                                                                                                                                                                                                                                                       |
+| sources | Whether to generate SRG named sources jar. Either `true` or `false`.                                                                                                                                                                                                                                                                                                                                                              |
+| mcupdate_target | When this property is set, a mcupdate target is loaded from [here](https://assets.moddingx.org/mcupdate). With the task `mcupdate` you can then prepare your project for the next major release of minecraft. In most cases this can be set to you'r minecraft version to update to.                                                                                                                                              |
+| production_runs | Whether runs should simulate a production environment.                                                                                                                                                                                                                                                                                                                                                                            |
+| **license_name** | The name of the project's license.                                                                                                                                                                                                                                                                                                                                                                                                |
+| **license_url** | The url of the project's license.                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 ## Uploading to mod hosting sites
 
@@ -55,7 +55,7 @@ When using one of the upload targets, you need to make your token available unde
 
 ## Experimental Features
 
-The [experimental](https://github.com/noeppi-noeppi/ModUtils/tree/experimental) branch contains things that have not yet been tested enough to go into the main branch or contain breaking changes. Use it at your own risk. To apply it, use:
+The [experimental](https://github.com/ModdingX/ModUtils/tree/experimental) branch contains things that have not yet been tested enough to go into the main branch or contain breaking changes. Use it at your own risk. To apply it, use:
 
 ```groovy
 buildscript {
