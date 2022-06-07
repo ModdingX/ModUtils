@@ -10,10 +10,10 @@ First you need to create a gradle project and configure your `build.gradle` file
 
 ```groovy
 buildscript {
-    apply from: 'https://raw.githubusercontent.com/noeppi-noeppi/ModUtils/v2/buildscript.gradle', to: buildscript
+    apply from: 'https://raw.githubusercontent.com/ModdingX/ModUtils/v2/buildscript.gradle', to: buildscript
 }
 
-apply from: 'https://raw.githubusercontent.com/noeppi-noeppi/ModUtils/v2/mod.gradle'
+apply from: 'https://raw.githubusercontent.com/ModdingX/ModUtils/v2/mod.gradle'
 ```
 
 After that, you can import the project in your IDE. This will fail the first time, but you'll get a new file called `gradle.properties`. Then you should configure this file. See section Properties.
