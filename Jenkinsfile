@@ -21,7 +21,7 @@ pipeline {
             steps {
                 echo 'Building'
                 sh './gradlew build publish'
-                /* sh './gradlew build curseforge modrinth publish' */
+                /* sh './gradlew build publish curseforge modrinth' */
             }
         }
 
