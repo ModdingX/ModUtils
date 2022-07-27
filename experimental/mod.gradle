@@ -389,7 +389,8 @@ if (curseInfo != null) {
             changelog = curseChangelog
             changelogType = 'markdown'
             curseInfo.gameVersions.each { addGameVersion "${it}" }
-            mainArtifact(jar) {
+            
+            Closure artifactConfig = {
                 if (!curseInfo.requirements.isEmpty() || !curseInfo.optionals.isEmpty()) {
                     relations {
                         if (!curseInfo.requirements.isEmpty()) {
@@ -400,6 +401,12 @@ if (curseInfo != null) {
                         }
                     }
                 }
+            }
+            
+            mainArtifact(jar) {}.with(artifactConfig)
+            
+            if (createSources()) {
+                addArtifact(jar) {}.with(artifactConfig)
             }
         }
     }
@@ -414,6 +421,9 @@ if (modrinthInfo != null) {
         versionNumber = project.version
         versionName = jar.getArchiveFileName().get()
         uploadFile = jar
+        if (createSources()) {
+            additionalFiles = [ sourceJar ]
+        }
 
         changelog = modrinthChangelog
         versionType = modrinthInfo.releaseType
