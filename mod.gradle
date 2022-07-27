@@ -404,7 +404,7 @@ if (curseInfo != null) {
             mainArtifact(jar) {}.with(artifactConfig)
             
             if (createSources()) {
-                addArtifact(jar) {}.with(artifactConfig)
+                addArtifact(sourceJar) {}.with(artifactConfig)
             }
         }
     }
