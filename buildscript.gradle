@@ -9,8 +9,8 @@ repositories {
 }
 
 dependencies {
-    classpath('net.minecraftforge.gradle:ForgeGradle') { version { strictly '5.1.41' } }
-    classpath('org.moddingx:ModGradle') { version { strictly '3.0.0' } }
+    classpath('net.minecraftforge.gradle:ForgeGradle') { version { strictly '5.1.53' } }
+    classpath('org.moddingx:ModGradle') { version { strictly '3.0.2' } }
     classpath('org.parchmentmc:librarian') { version { strictly '1.2.0' } }
     classpath('gradle.plugin.com.matthewprenger:CurseGradle') { version { strictly '1.4.0' } }
     classpath('com.modrinth.minotaur:Minotaur') { version { strictly '2.3.0' } }
