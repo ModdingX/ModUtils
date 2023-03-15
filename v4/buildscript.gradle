@@ -27,7 +27,7 @@ repositories {
 }
 
 dependencies {
-    classpath('net.minecraftforge.gradle:ForgeGradle') { version { strictly '5.1.56' } }
+    classpath('net.minecraftforge.gradle:ForgeGradle') { version { strictly '5.1.68' } }
     classpath('org.moddingx:ModGradle') { version { strictly '3.0.2' } }
     classpath('org.parchmentmc:librarian') { version { strictly '1.2.0' } }
     classpath('gradle.plugin.com.matthewprenger:CurseGradle') { version { strictly '1.4.0' } }
