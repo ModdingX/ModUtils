@@ -5,3 +5,4 @@ guiScale:3
 lastServer:127.0.0.1
 heldItemTooltips:true
 skipMultiplayerWarning:true
+operatorItemsTab:true
