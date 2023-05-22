@@ -27,8 +27,8 @@ repositories {
 }
 
 dependencies {
-    classpath('net.minecraftforge.gradle:ForgeGradle') { version { strictly '5.1.73' } }
-    classpath('org.moddingx:ModGradle') { version { strictly '3.1.0' } }
+    classpath('net.minecraftforge.gradle:ForgeGradle') { version { strictly '5.1.76' } }
+    classpath('org.moddingx:ModGradle') { version { strictly '3.1.2' } }
     classpath('org.parchmentmc:librarian') { version { strictly '1.2.0' } }
     classpath('gradle.plugin.com.matthewprenger:CurseGradle') { version { strictly '1.4.0' } }
     classpath('com.modrinth.minotaur:Minotaur') { version { strictly '2.7.5' } }
@@ -38,5 +38,5 @@ dependencies {
     
     // ForgeGradle apparently does not know about version ranges and does not update their dependencies
     // Force a more recent version here
-    classpath('de.siegmar:fastcsv') { version { strictly '[2.2.1,)' } }
+    classpath('de.siegmar:fastcsv') { version { strictly '[2.2.2,)' } }
 }
