@@ -416,6 +416,8 @@ setup {
 }
 
 if ('mcupdate' in mod) {
+    apply plugin: 'org.moddingx.modgradle.mcupdate'
+    
     mcupdate {
         version mod.mcupdate
     }
