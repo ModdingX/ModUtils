@@ -21,7 +21,7 @@ if ('mcupdate' in mod) {
             if (java.nio.file.Files.isRegularFile(project.file('mod.properties').toPath())) {
                 List<String> properties = new ArrayList<>(Arrays.asList(java.nio.file.Files.readString(project.file('mod.properties').toPath()).split('\n')))
                 properties.removeIf(java.util.regex.Pattern.compile('\\s*mcupdate\\s*=\\s*' + java.util.regex.Pattern.quote(mod.mcupdate) + '\\s*', java.util.regex.Pattern.CASE_INSENSITIVE).asMatchPredicate())
-                java.nio.file.Files.writeString(project.file('mod.properties').toPath(), String.join('\n', properties), StandardOpenOption.TRUNCATE_EXISTING)
+                java.nio.file.Files.writeString(project.file('mod.properties').toPath(), String.join('\n', properties), java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
             }
         }
     }
