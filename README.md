@@ -69,6 +69,7 @@ The properties defined in `mod.properties` will be placed in a global object nam
 | **version** | `String` | The mod/project version. |
 | **minecraft** | `String` | The minecraft version in use. |
 | **forge** | `String` | The forge version in use. (Without the minecraft version prefixed) |
+| **fml** | `String` | The major part of the forge version. |
 | **fmlonly** | `boolean` | Whether fmlonly mode is enabled. |
 | **mapping_channel** | `String` | The mapping channel that is in use. |
 | **mapping_version** | `String` | The mapping version that is in use. |

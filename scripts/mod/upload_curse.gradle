@@ -14,7 +14,6 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
         file.changelogType = 'markdown'
         mod.curse.requirements.each { file.addRequirement(it) }
         mod.curse.optionals.each { file.addOptional(it) }
-        
     }
     
     def mainFile = upload(mod.curse.project, jar)

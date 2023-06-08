@@ -38,9 +38,9 @@ org.moddingx.modgradle.ModGradle.initialiseProject(project)
         Properties properties = new Properties()
         properties.put('project', mod[id + '_project'])
         properties.put('release', query('release', 'alpha'))
-        properties.put('versions', query('versions', mod.minecraft).split(",")*.strip().toList())
-        properties.put('requirements', query('requirements', '').split(",")*.strip().toList())
-        properties.put('optionals', query('optionals', '').split(",")*.strip().toList())
+        properties.put('versions', query('versions', mod.minecraft).split(",")*.strip().toList().findAll { !it.isEmpty() })
+        properties.put('requirements', query('requirements', '').split(",")*.strip().toList().findAll { !it.isEmpty() })
+        properties.put('optionals', query('optionals', '').split(",")*.strip().toList().findAll { !it.isEmpty() })
         return modgradle.wrap(properties)
     }
     
@@ -62,6 +62,11 @@ org.moddingx.modgradle.ModGradle.initialiseProject(project)
     mod['minecraft'] = mod.forge_version.toString().strip().substring(0, mod.forge_version.toString().strip().indexOf('-'))
     mod['forge'] = mod.forge_version.toString().strip().substring(mod.forge_version.toString().strip().indexOf('-') + 1)
     mod['forge_version'] = void
+    if (mod.forge.contains('.')) {
+        mod['fml'] = mod.forge.substring(0, mod.forge_version.indexOf('.'))
+    } else {
+        mod['fml'] = mod.forge
+    }
     if ('local_maven' in mod) {
         mod['version'] = modgradle.projectVersion(mod.base_version, mod.local_maven)
     } else {
