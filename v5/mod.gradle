@@ -96,9 +96,9 @@ org.moddingx.modgradle.ModGradle.initialiseProject(project)
         Properties properties = new Properties()
         properties.put('project', mod[id + '_project'])
         properties.put('release', query('release', 'alpha'))
-        properties.put('versions', query('versions', mod.minecraft).split(",")*.strip().toList())
-        properties.put('requirements', query('requirements', '').split(",")*.strip().toList())
-        properties.put('optionals', query('optionals', '').split(",")*.strip().toList())
+        properties.put('versions', query('versions', mod.minecraft).split(",")*.strip().toList().findAll { !it.isEmpty() })
+        properties.put('requirements', query('requirements', '').split(",")*.strip().toList().findAll { !it.isEmpty() })
+        properties.put('optionals', query('optionals', '').split(",")*.strip().toList().findAll { !it.isEmpty() })
         return modgradle.wrap(properties)
     }
     
@@ -120,6 +120,11 @@ org.moddingx.modgradle.ModGradle.initialiseProject(project)
     mod['minecraft'] = mod.forge_version.toString().strip().substring(0, mod.forge_version.toString().strip().indexOf('-'))
     mod['forge'] = mod.forge_version.toString().strip().substring(mod.forge_version.toString().strip().indexOf('-') + 1)
     mod['forge_version'] = void
+    if (mod.forge.contains('.')) {
+        mod['fml'] = mod.forge.substring(0, mod.forge_version.indexOf('.'))
+    } else {
+        mod['fml'] = mod.forge
+    }
     if ('local_maven' in mod) {
         mod['version'] = modgradle.projectVersion(mod.base_version, mod.local_maven)
     } else {
@@ -424,10 +429,10 @@ if ('mcupdate' in mod) {
     
     task modutils_removeUpdateProperty {
         doLast {
-            if (Files.isRegularFile(project.file('gradle.properties').toPath())) {
+            if (java.nio.file.Files.isRegularFile(project.file('mod.properties').toPath())) {
                 List<String> properties = new ArrayList<>(Arrays.asList(java.nio.file.Files.readString(project.file('mod.properties').toPath()).split('\n')))
                 properties.removeIf(java.util.regex.Pattern.compile('\\s*mcupdate\\s*=\\s*' + java.util.regex.Pattern.quote(mod.mcupdate) + '\\s*', java.util.regex.Pattern.CASE_INSENSITIVE).asMatchPredicate())
-                Files.writeString(project.file('gradle.properties').toPath(), String.join('\n', properties), StandardOpenOption.TRUNCATE_EXISTING)
+                java.nio.file.Files.writeString(project.file('mod.properties').toPath(), String.join('\n', properties), StandardOpenOption.TRUNCATE_EXISTING)
             }
         }
     }
@@ -520,7 +525,6 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
         file.changelogType = 'markdown'
         mod.curse.requirements.each { file.addRequirement(it) }
         mod.curse.optionals.each { file.addOptional(it) }
-        
     }
     
     def mainFile = upload(mod.curse.project, jar)
