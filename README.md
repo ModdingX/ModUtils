@@ -50,7 +50,7 @@ ModUtils supports upload to [CurseForge](https://www.curseforge.com/minecraft/mc
 | requirements | A list of projects that are required dependencies (separated by comma) |
 | optionals | A list of projects that are optional dependencies (separated by comma) |
 
-To set a property, set `<name>_<property>` in `gradle.properties` where `<name>` is the website to upload to (`curse` or `modrinth`) and `<property>` is the property to set. If a property is not set in this format, the property `upload_<property>` is searched, so you can set properties for both CurseForge and Modrinth at the same time. However, you can't use `upload_project`.
+To set a property, set `<name>_<property>` in `mod.properties` where `<name>` is the website to upload to (`curse` or `modrinth`) and `<property>` is the property to set. If a property is not set in this format, the property `upload_<property>` is searched, so you can set properties for both CurseForge and Modrinth at the same time. However, you can't use `upload_project`.
 
 ## Secrets
 
