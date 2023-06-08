@@ -28,7 +28,7 @@ jobs:
             rm -rf "deploy/${BRANCH}"
             mkdir -p "deploy/${BRANCH}"
             cd base
-            rm -r output
+            rm -rf output
             bash build.sh "${BRANCH}"
             if [[ "$?" != "0" ]]; then
               exit 1
