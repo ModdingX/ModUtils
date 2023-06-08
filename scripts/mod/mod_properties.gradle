@@ -63,7 +63,7 @@ org.moddingx.modgradle.ModGradle.initialiseProject(project)
     mod['forge'] = mod.forge_version.toString().strip().substring(mod.forge_version.toString().strip().indexOf('-') + 1)
     mod['forge_version'] = void
     if (mod.forge.contains('.')) {
-        mod['fml'] = mod.forge.substring(0, mod.forge_version.indexOf('.'))
+        mod['fml'] = mod.forge.substring(0, mod.forge.indexOf('.'))
     } else {
         mod['fml'] = mod.forge
     }
