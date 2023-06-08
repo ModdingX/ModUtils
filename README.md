@@ -86,7 +86,7 @@ The properties defined in `mod.properties` will be placed in a global object nam
 | **run** | `<run>` | See below. |
 | **gitChangelog** | `()String` | Method that gets the changelog from git commits in the current CI build. Empty string if no changelog can be generated. |
 | curse | `<upload>` | Upload information for CurseForge. See below. |
-| modrinth | `<upload>` | Upload information for CurseForge. See below. |
+| modrinth | `<upload>` | Upload information for Modrinth. See below. |
 
 All non-standard properties in mod.properties are also copied into the `mod` object.
 
