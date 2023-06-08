@@ -1,0 +1,3 @@
+if (!org.apache.maven.artifact.versioning.VersionRange.createFromVersionSpec("#[GRADLE_VERSION]").containsVersion(new org.apache.maven.artifact.versioning.DefaultArtifactVersion(gradle.gradleVersion))) {
+    throw new IllegalStateException("Gradle version ${gradle.gradleVersion} does not match required version range: #[GRADLE_VERSION]")
+}

@@ -1,0 +1,7 @@
+// Does not include mixin repo, mixin is added in mixin.gradle
+repositories {
+    maven { url = #[LOCAL_MAVEN] }
+    maven { url = 'https://maven.minecraftforge.net' }
+    maven { url = 'https://libraries.minecraft.net' }
+}
+

@@ -1,0 +1,28 @@
+repositories {
+    maven { url = 'https://repo.spongepowered.org/repository/maven-public' }
+}
+
+dependencies {
+    if (hasMixin()) {
+        annotationProcessor "org.spongepowered:mixin:${Versioning.getMixinVersion(mcVersion()).release()}:processor"
+    }
+}
+
+mixin {
+    add sourceSets.main, "${mod.modid}.refmap.json"
+}
+
+jar {
+    manifest {
+        attributes.put('MixinConfigs', "${mod.modid}.mixins.json")
+    }
+}
+
+// Prevent Mixin annotation processor from getting into IDEAs annotation processor settings
+if (System.getProperty('idea.sync.active') == 'true') {
+    afterEvaluate {
+        tasks.withType(JavaCompile).all {
+            it.options.annotationProcessorPath = files()
+        }
+    }
+}

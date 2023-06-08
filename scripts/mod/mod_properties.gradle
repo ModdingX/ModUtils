@@ -1,0 +1,104 @@
+// Initialise mod properties
+if (!project.file('mod.properties').exists()) {
+    java.nio.file.Files.copy(new URL("https://raw.githubusercontent.com/ModdingX/ModUtils/#[MODUTILS_VERSION]/mod.properties").openStream(), file('mod.properties').toPath())
+    throw new RuntimeException("Default mod.properties file created. Re-run your build now.")
+}
+
+// Initialize the project in ModGradle manually before applying the plugins, so we can use the extension
+org.moddingx.modgradle.ModGradle.initialiseProject(project)
+
+;{
+    Properties modProperties = new Properties()
+    project.file('mod.properties').withReader { modProperties.load(it) }
+    project.ext {
+        mod = modgradle.wrap(modProperties)
+    }
+}.call()
+
+[ 'modid', 'group', 'base_version', 'forge_version', 'license', 'license_url' ].each {
+    if (!(it in mod)) throw new IllegalStateException("mod.gradle is missing the required property ${it}")
+}
+
+;{
+    Closure makeBoolean = { String property, defaultValue ->
+        if (property in mod) {
+            mod[property] = Boolean.parseBoolean(mod[property].toString())
+        } else {
+            mod[property] = defaultValue
+        }
+    }
+    
+    Closure makeUploadProperties = { String id ->
+        if (!((id + '_project') in mod)) return void
+        Closure query = { String field, String defaultValue ->
+            if ((id + '_' + field) in mod) return mod[id + '_' + field].toString().strip()
+            if (('upload_' + field) in mod) return mod['upload_' + field].toString().strip()
+            return defaultValue
+        }
+        Properties properties = new Properties()
+        properties.put('project', mod[id + '_project'])
+        properties.put('release', query('release', 'alpha'))
+        properties.put('versions', query('versions', mod.minecraft).split(",")*.strip().toList())
+        properties.put('requirements', query('requirements', '').split(",")*.strip().toList())
+        properties.put('optionals', query('optionals', '').split(",")*.strip().toList())
+        return modgradle.wrap(properties)
+    }
+    
+    Closure removeUploadProperties = { String id ->
+        mod[id + '_project'] = void
+        mod[id + '_release'] = void
+        mod[id + '_versions'] = void
+        mod[id + '_requirements'] = void
+        mod[id + '_optionals'] = void
+    }
+    
+    makeBoolean('mixin', false)
+    makeBoolean('production_runs', false)
+    makeBoolean('sources', false)
+    makeBoolean('fmlonly', false)
+    
+    project.group = mod.group // Need to set group before querying modgradle.projectVersion
+    mod['name'] = project.name
+    mod['minecraft'] = mod.forge_version.toString().strip().substring(0, mod.forge_version.toString().strip().indexOf('-'))
+    mod['forge'] = mod.forge_version.toString().strip().substring(mod.forge_version.toString().strip().indexOf('-') + 1)
+    mod['forge_version'] = void
+    if ('local_maven' in mod) {
+        mod['version'] = modgradle.projectVersion(mod.base_version, mod.local_maven)
+    } else {
+        mod['version'] = mod.base_version
+    }
+    project.version = mod.version
+    
+    var versionInfo = modgradle.minecraftVersion(mod.minecraft)
+    mod['java'] = versionInfo.java
+    mod['resource'] = versionInfo.resource
+    mod['data'] = versionInfo.data
+    if ('mixin' in versionInfo) mod['mixin_version'] = versionInfo.mixin
+
+    if ('mappings' in mod) {
+        String mappingsStr = mod.mappings
+        if (mappingsStr.endsWith('_23w13a_or_b')) {
+            mod['mapping_channel'] = mappingsStr.substring(0, mappingsStr.length() - 12)
+            mod['mapping_version'] = '23w13a_or_b'
+        } else {
+            mod['mapping_channel'] = mappingsStr.substring(0, mappingsStr.indexOf('_'))
+            mod['mapping_version'] = mappingsStr.substring(mappingsStr.indexOf('_') + 1)
+        }
+    } else {
+        mod['mapping_channel'] = 'official'
+        mod['mapping_version'] = mod.minecraft
+    }
+    mod['mappings'] = void
+    
+    mod['curse'] = makeUploadProperties('curse')
+    mod['modrinth'] = makeUploadProperties('modrinth')
+    removeUploadProperties('upload')
+    removeUploadProperties('curse')
+    removeUploadProperties('modrinth')
+    
+    try {
+        mod['license_url'] = new java.net.URL(mod['license_url'].toString())
+    } catch (MalformedURLException e) {
+        throw new IllegalStateException("Invalid license URL", e)
+    }
+}.call()

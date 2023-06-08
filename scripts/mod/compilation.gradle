@@ -1,0 +1,49 @@
+processResources {
+    exclude('/.cache/**')
+}
+
+afterEvaluate {
+    processResources {
+        filesMatching('META-INF/mods.toml') {
+            expand mod.toMap()
+        }
+    }
+}
+
+compileJava {
+    options.compilerArgs += [
+            '-Amod.properties.mod_id=' + mod.modid,
+            '-Amod.properties.mc_version=' + mod.minecraft,
+            '-Amod.properties.mod_version=' + project.version,
+            '-Amod.properties.java_version=' + mod.java
+    ]
+}
+
+jar {
+    manifest {
+        attributes([
+                'Specification-Title': mod.modid,
+                'Specification-Version': '1',
+                "Implementation-Title": project.name,
+                "Implementation-Version": project.version,
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                "Automatic-Module-Name": "mcmods.${mod.modid}"
+        ])
+    }
+}
+jar.finalizedBy('reobfJar')
+
+// Force UTF-8
+afterEvaluate {
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+    }
+
+    tasks.withType(Test).configureEach {
+        defaultCharacterEncoding = 'UTF-8'
+    }
+
+    tasks.withType(Javadoc).configureEach {
+        options.encoding = 'UTF-8'
+    }
+}

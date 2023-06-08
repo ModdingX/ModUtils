@@ -1,0 +1,93 @@
+dependencies {
+    if (mod.fmlonly) {
+        minecraft "net.minecraftforge:fmlonly:${mod.minecraft}-${mod.forge}"
+    } else {
+        minecraft "net.minecraftforge:forge:${mod.minecraft}-${mod.forge}"
+    }
+}
+
+boolean minecraftHasDatagen = mod.resource >= 4 && !mod.fmlonly
+
+if (minecraftHasDatagen) {
+    sourceSets.main.resources {
+        srcDir 'src/generated/resources'
+    }
+}
+
+minecraft {
+    mappings channel: mod.mapping_channel, version: mod.mapping_version
+    if (project.file('src/main/resources/META-INF/accesstransformer.cfg').exists()) {
+        accessTransformer = project.file('src/main/resources/META-INF/accesstransformer.cfg')
+    }
+
+    final Closure defaultRun = {
+        property 'forge.logging.console.level', 'debug'
+        property 'forge.logging.markers', 'REGISTRIES'
+        if (mod.production_runs) {
+            jvmArg '-Dproduction=true'
+        }
+        if ('mixin_version' in mod) {
+            // Only add mixin related options if mixin is available
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', project.tasks.named('createSrgToMcp').get().getOutput().get().getAsFile().toPath().toAbsolutePath().normalize().toString()
+            if (mod.mixin) {
+                arg '-mixin.config=' + mod.modid + '.mixins.json'
+                property 'mixin.debug.export', 'true'
+            }
+        }
+        mods {
+            "${mod.modid}" {
+                source sourceSets.main
+            }
+        }
+    }
+    runs {
+        client {
+            workingDirectory project.file('runClient')
+        }.with(defaultRun)
+        server {
+            workingDirectory project.file('runServer')
+        }.with(defaultRun)
+        if (minecraftHasDatagen) {
+            data {
+                workingDirectory project.file('runData')
+                args '--mod', mod.modid, '--all', '--output', file('src/generated/resources'), '--existing', file('src/main/resources')
+            }.with(defaultRun)
+        }
+    }
+}
+
+mod['run'] = modgradle.wrap()
+
+mod.run['sourceSet'] = { SourceSet sourceSet ->
+    final Closure runConfigClosure = {
+        mods {
+            "${mod.modid}" {
+                source sourceSet
+            }
+        }
+    }
+    minecraft {
+        runs {
+            client {}.with(runConfigClosure)
+            server {}.with(runConfigClosure)
+            if (mod.resource >= 4) {
+                data {}.with(runConfigClosure)
+            }
+        }
+    }
+}
+
+if (minecraftHasDatagen) {
+    mod.run['existing'] = { String modid ->
+        minecraft {
+            runs {
+                data {
+                    args '--existing-mod', modid
+                }
+            }
+        }
+    }
+} else {
+    mod.run['existing'] = { String modid -> System.err.println("Can't add existing mod ${modid}, datagen is not available.") }
+}

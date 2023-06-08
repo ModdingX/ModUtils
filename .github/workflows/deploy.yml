@@ -16,20 +16,24 @@ jobs:
         with:
           ref: 'gh-pages'
           path: deploy
+          
+      - name: 'Installing dependencies'
+        run: sudo apt-get install -y gpp
 
       - name: 'Copy Files'
         shell: bash
         run: |
           BRANCH=$(echo ${GITHUB_REF#refs/heads/})
           if [[ "${BRANCH}" != "" && "${BRANCH}" != *"/"* ]]; then
-            rm -rf deploy/${BRANCH}
-            mkdir -p deploy/${BRANCH}
-            cp base/*.gradle deploy/${BRANCH}
-            if [[ -f deploy/${BRANCH}/mod.gradle ]]; then
-              cp deploy/${BRANCH}/mod.gradle mod.gradle.tmp
-              echo -e "buildscript { project.ext { MODUTILS_VERSION = \"${BRANCH}\" } }\n" > deploy/${BRANCH}/mod.gradle
-              cat mod.gradle.tmp >> deploy/${BRANCH}/mod.gradle
+            rm -rf "deploy/${BRANCH}"
+            mkdir -p "deploy/${BRANCH}"
+            cd base
+            rm -r output
+            bash build.sh "${BRANCH}"
+            if [[ "$?" != "0" ]]; then
+              exit 1
             fi
+            cp "output/*" "../deploy/${BRANCH}/"
           fi
 
       - name: 'Push'

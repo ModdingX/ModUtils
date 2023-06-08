@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "compatibilityLevel": "${mixin_compatibility}",
+  "refmap": "${modid}.refmap.json",
+  "package": "${group}.${modid}.mixin",
+  "minVersion": "${mixin_min}",
+  "client": [],
+  "server": [],
+  "mixins": []
+}
+<% if (!mixin_enabled) abort() %>

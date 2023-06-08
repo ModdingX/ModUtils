@@ -1,0 +1,4 @@
+src/main/resources/modid.mixins.json src/main/resources/${modid}.mixins.json
+src/main/resources/assets/modid src/main/resources/assets/${modid}
+src/main/java/group/name.java src/main/java/${group.replace('.','/')}/${name}.java
+src/main/java/group src/main/java/${group.replace('.','/')}

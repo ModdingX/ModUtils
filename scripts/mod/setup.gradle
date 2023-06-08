@@ -1,0 +1,32 @@
+apply plugin: 'org.moddingx.modgradle.meta'
+
+setup {
+    modid = mod.modid
+    license = mod.license
+    licenseUrl = mod.license_url
+    mixin = mod.mixin
+    repo = new URL("https://github.com/ModdingX/ModUtils.git")
+    repoBranch = "#[MODUTILS_VERSION]"
+}
+
+if ('mcupdate' in mod) {
+    mcupdate {
+        version mod.mcupdate
+    }
+    
+    task modutils_removeUpdateProperty {
+        doLast {
+            if (Files.isRegularFile(project.file('gradle.properties').toPath())) {
+                List<String> properties = new ArrayList<>(Arrays.asList(java.nio.file.Files.readString(project.file('mod.properties').toPath()).split('\n')))
+                properties.removeIf(java.util.regex.Pattern.compile('\\s*mcupdate\\s*=\\s*' + java.util.regex.Pattern.quote(mod.mcupdate) + '\\s*', java.util.regex.Pattern.CASE_INSENSITIVE).asMatchPredicate())
+                Files.writeString(project.file('gradle.properties').toPath(), String.join('\n', properties), StandardOpenOption.TRUNCATE_EXISTING)
+            }
+        }
+    }
+
+    afterEvaluate {
+        // afterEvaluate as the mcupdate task does not exist yet
+        // Need to get the task like this as we have the mcupdate extension that shades the task
+        project.tasks.getByName('mcupdate').finalizedBy(modutils_removeUpdateProperty)
+    }
+}

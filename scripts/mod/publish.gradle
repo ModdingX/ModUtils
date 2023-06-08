@@ -1,0 +1,29 @@
+apply plugin: 'maven-publish'
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = project.group
+            artifactId = project.name
+            version = project.version
+            artifact jar
+            if (mod.sources) {
+                artifact sourceJar
+            }
+            pom {
+                licenses {
+                    license {
+                        name = mod.license
+                        url = mod.license_url.toString()
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url mod.local_maven
+        }
+    }
+}
+publish.dependsOn('reobfJar')

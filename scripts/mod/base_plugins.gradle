@@ -1,0 +1,24 @@
+// ***** Apply gradle plugins ***** //
+
+// Set the java toolchain level directly after applying the java plugin, as other ModGradle plugins
+// may use that information and then also lock the property for later modification.
+apply plugin: 'java'
+java.toolchain.languageVersion = JavaLanguageVersion.of(mod.java)
+
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'org.parchmentmc.librarian.forgegradle'
+apply plugin: 'org.moddingx.modgradle.mapping'
+if (mod.sources) {
+    apply plugin: 'org.moddingx.modgradle.sourcejar'
+}
+
+// ***** Base Project information ***** //
+
+base {
+    archivesName = project.name
+}
+
+println "Java: ${System.getProperty('java.version')}   JVM: ${System.getProperty('java.vm.version')}(${System.getProperty('java.vendor')})   Arch: ${System.getProperty('os.arch')}"
+println "Mod: ${project.name}(${mod.modid})   Group: ${project.group}   Version: ${project.version}"
+println "Minecraft: ${mod.minecraft}   Target: java${mod.java}" + (mod.mixin ? "   Mixin: ${mod.mixin_version}" : '')
+println ''

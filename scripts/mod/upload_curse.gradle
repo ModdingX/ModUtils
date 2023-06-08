@@ -1,0 +1,28 @@
+apply plugin: 'net.darkhax.curseforgegradle'
+
+String curseChangelog = mod.gitChangelog()
+task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+    if ('curse_auth' in secrets) {
+        apiToken = secrets.curse_auth.toString()
+    } else {
+        apiToken = ''
+    }
+    
+    Closure fileConfig = { file ->
+        file.releaseType = mod.curse.release
+        file.changelog = curseChangelog
+        file.changelogType = 'markdown'
+        mod.curse.requirements.each { file.addRequirement(it) }
+        mod.curse.optionals.each { file.addOptional(it) }
+        
+    }
+    
+    def mainFile = upload(mod.curse.project, jar)
+    fileConfig(mainFile)
+    
+    if (mod.sources) {
+        def sourcesFile = mainFile.withAdditionalFile(sourceJar)
+        fileConfig(sourcesFile)
+    }
+}
+project.tasks.getByName('curseforge').dependsOn('reobfJar')

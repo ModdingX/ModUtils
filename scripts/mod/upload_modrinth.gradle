@@ -1,0 +1,27 @@
+apply plugin: 'com.modrinth.minotaur'
+
+String modrinthChangelog = mod.gitChangelog()
+modrinth {
+    if ('modrinth_auth' in secrets) {
+        token = secrets.modrinth_auth.toString()
+    } else {
+        token = ''
+    }
+    projectId = mod.modrinth.project
+    versionNumber = project.version
+    versionName = jar.getArchiveFileName().get()
+    uploadFile = jar
+    if (mod.sources) {
+        additionalFiles = [ sourceJar ]
+    }
+
+    changelog = modrinthChangelog
+    versionType = mod.modrinth.release
+    gameVersions = mod.modrinth.versions
+    loaders = [ "forge" ]
+
+    dependencies = []
+    mod.modrinth.requirements.each { dependencies.add(new com.modrinth.minotaur.dependencies.ModDependency(it, "required")) }
+    mod.modrinth.optionals.each { dependencies.add(new com.modrinth.minotaur.dependencies.ModDependency(it, "optional")) }
+}
+project.tasks.getByName('modrinth').dependsOn('reobfJar')

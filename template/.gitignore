@@ -21,6 +21,7 @@ build
 eclipse
 /run*
 /logs
+/secret.properties
 
 # Files from Forge MDK
 forge*changelog.txt

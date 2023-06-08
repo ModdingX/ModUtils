@@ -1,7 +1,11 @@
+if (Runtime.version().feature() < #[MIN_JAVA_VERSION]) {
+    throw new IllegalStateException("ModUtils requires at least java #[MIN_JAVA_VERSION], got " + Runtime.version().feature())
+}
+
 repositories {
     mavenCentral()
-    maven { url = 'https://maven.moddingx.org' }
-    
+    maven { url = #[LOCAL_MAVEN] }
+
     maven { // Forge caching maven central may break things
         url = 'https://maven.minecraftforge.net'
         content {
@@ -11,31 +15,31 @@ repositories {
             includeGroup 'org.mcmodlauncher'
         }
     }
-    
+
     maven { url = 'https://libraries.minecraft.net' }
     maven { url = 'https://maven.parchmentmc.org' }
-    
+
     maven { // For some reason this can break things by redirecting to bintray?!
         url = 'https://plugins.gradle.org/m2'
         content {
-            includeGroupByRegex '^(gradle\\.plugin\\.)?com\\.matthewprenger.*'
+            includeGroupByRegex '^(gradle\\.plugin\\.)?net\\.darkhax\\.curseforgegradle.*'
             includeGroupByRegex '^(gradle\\.plugin\\.)?com\\.modrinth.*'
         }
     }
-    
+
     maven { url = 'https://repo.spongepowered.org/repository/maven-public' }
 }
 
 dependencies {
-    classpath('net.minecraftforge.gradle:ForgeGradle') { version { strictly '5.1.76' } }
-    classpath('org.moddingx:ModGradle') { version { strictly '3.1.2' } }
+    classpath('net.minecraftforge.gradle:ForgeGradle') { version { strictly '6.0.4' } }
+    classpath('org.moddingx:ModGradle') { version { strictly '1.0.14' } }
     classpath('org.parchmentmc:librarian') { version { strictly '1.2.0' } }
-    classpath('gradle.plugin.com.matthewprenger:CurseGradle') { version { strictly '1.4.0' } }
+    classpath('gradle.plugin.net.darkhax.curseforgegradle:CurseForgeGradle') { version { strictly '1.4.0' } }
     classpath('com.modrinth.minotaur:Minotaur') { version { strictly '2.7.5' } }
     classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     classpath 'org.apache.maven:maven-artifact:3.9.1'
     classpath 'com.google.code.findbugs:jsr305:3.0.2'
-    
+
     // ForgeGradle apparently does not know about version ranges and does not update their dependencies
     // Force a more recent version here
     classpath('de.siegmar:fastcsv') { version { strictly '[2.2.2,)' } }
