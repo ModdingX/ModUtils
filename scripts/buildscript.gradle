@@ -32,7 +32,7 @@ repositories {
 
 dependencies {
     classpath('net.minecraftforge.gradle:ForgeGradle') { version { strictly '6.0.4' } }
-    classpath('org.moddingx:ModGradle') { version { strictly '1.0.14' } }
+    classpath('org.moddingx:ModGradle') { version { strictly '4.0.0' } }
     classpath('org.parchmentmc:librarian') { version { strictly '1.2.0' } }
     classpath('gradle.plugin.net.darkhax.curseforgegradle:CurseForgeGradle') { version { strictly '1.4.0' } }
     classpath('com.modrinth.minotaur:Minotaur') { version { strictly '2.7.5' } }
