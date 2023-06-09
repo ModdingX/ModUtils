@@ -68,9 +68,9 @@ org.moddingx.modgradle.ModGradle.initialiseProject(project)
         mod['fml'] = mod.forge
     }
     if ('local_maven' in mod) {
-        mod['version'] = modgradle.projectVersion(mod.base_version, mod.local_maven)
+        mod['version'] = modgradle.projectVersion(mod.minecraft + '-' + mod.base_version, mod.local_maven)
     } else {
-        mod['version'] = mod.base_version
+        mod['version'] = mod.minecraft + '-' + mod.base_version
     }
     project.version = mod.version
     

@@ -37,6 +37,7 @@ Now you can run `gradle setup` which will create some new files for your mod.
 | production_runs | Whether runs should simulate a production environment. |
 | **license** | The name of the project's license. |
 | **license_url** | The url of the project's license. |
+| changelog_repository | A link to a specific commit in the source code. If this is set, the generated changelogs will link back to the commits. `%H` will expand to the commit hash. |
 
 ## Uploading to mod hosting sites
 

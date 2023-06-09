@@ -20,30 +20,44 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER I
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-mod['gitChangelog'] = { ->
-    try {
-        def stdout = new ByteArrayOutputStream()
-        def gitHash = System.getenv('GIT_COMMIT')
-        def gitPrevHash = System.getenv('GIT_PREVIOUS_COMMIT')
-        def travisRange = System.getenv('TRAVIS_COMMIT_RANGE')
-        if (gitHash != null && gitPrevHash != null) {
-            exec {
-                commandLine 'git', 'log', '--pretty=tformat:%s - %aN', '' + gitPrevHash + '...' + gitHash
-                standardOutput = stdout
-            }
-        } else if (gitHash != null) {
-            exec {
-                commandLine 'git', 'log', '--pretty=tformat:%s - %aN', '' + gitHash
-                standardOutput = stdout
-            }
-        } else if (travisRange != null) {
-            exec {
-                commandLine 'git', 'log', '--pretty=tformat:%s - %aN', '' + travisRange
-                standardOutput = stdout
-            }
-        }
-        return java.nio.charset.StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap(stdout.toByteArray())).toString()
-    } catch(ignored) {
-        return '';
+; {
+    String logFmt = '--pretty=tformat:- %s - *%aN*'
+    if ('changelog_repository' in mod) {
+        logFmt = '--pretty=tformat:- [%s](' + mod.changelog_repository.toString() + ') - *%aN*'
     }
-}
+    mod['changelog_repository'] = void
+    
+    mod['gitChangelog'] = { ->
+        try {
+            def stdout = new ByteArrayOutputStream()
+            def gitHash = System.getenv('GIT_COMMIT')
+            def gitPrevHash = System.getenv('GIT_PREVIOUS_COMMIT')
+            def travisRange = System.getenv('TRAVIS_COMMIT_RANGE')
+            if (gitHash != null && gitPrevHash != null) {
+                exec {
+                    commandLine 'git', 'log', logFmt, '' + gitPrevHash + '...' + gitHash
+                    standardOutput = stdout
+                }
+            } else if (gitHash != null) {
+                exec {
+                    commandLine 'git', 'log', logFmt, '' + gitHash
+                    standardOutput = stdout
+                }
+            } else if (travisRange != null) {
+                exec {
+                    commandLine 'git', 'log', logFmt, '' + travisRange
+                    standardOutput = stdout
+                }
+            } else  {
+                exec {
+                    commandLine 'git', 'log', logFmt, 'HEAD'
+                    standardOutput = stdout
+                }
+            }
+            return java.nio.charset.StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap(stdout.toByteArray())).toString()
+        } catch(ignored) {
+            return ''
+        }
+    }
+}.call()
+
