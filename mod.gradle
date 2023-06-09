@@ -13,7 +13,7 @@ buildscript {
         println('Loading local buildscript.')
         apply from: "buildscript.gradle", to: buildscript
     } else {
-        apply from: "https://noeppi-noeppi.github.io/ModUtils/${MODUTILS_VERSION}/buildscript.gradle", to: buildscript
+        apply from: "https://moddingx.github.io/ModUtils/${MODUTILS_VERSION}/buildscript.gradle", to: buildscript
     }
 }
 
