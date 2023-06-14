@@ -35,7 +35,7 @@ dependencies {
     classpath('org.moddingx:ModGradle') { version { strictly '4.0.1' } }
     classpath('org.parchmentmc:librarian') { version { strictly '1.2.0' } }
     classpath('net.darkhax.curseforgegradle:CurseForgeGradle') { version { strictly '1.0.14' } }
-    classpath('com.modrinth.minotaur:Minotaur') { version { strictly '2.7.5' } }
+    classpath('com.modrinth.minotaur:Minotaur') { version { strictly '2.8.1' } }
     classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     classpath 'org.apache.maven:maven-artifact:3.9.1'
     classpath 'com.google.code.findbugs:jsr305:3.0.2'

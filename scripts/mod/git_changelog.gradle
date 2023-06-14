@@ -48,11 +48,6 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
                     commandLine 'git', 'log', logFmt, '' + travisRange
                     standardOutput = stdout
                 }
-            } else  {
-                exec {
-                    commandLine 'git', 'log', logFmt, 'HEAD'
-                    standardOutput = stdout
-                }
             }
             return java.nio.charset.StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap(stdout.toByteArray())).toString()
         } catch(ignored) {
