@@ -381,6 +381,11 @@ afterEvaluate {
         filesMatching('META-INF/mods.toml') {
             expand mod.toMap()
         }
+        mod.toMap().each { key, value ->
+            if (value instanceof Serializable && !(value instanceof Closure)) {
+                inputs.property("modutils_mod_" + key, value)
+            }
+        }
     }
 }
 
