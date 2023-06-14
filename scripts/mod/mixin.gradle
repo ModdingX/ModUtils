@@ -3,7 +3,7 @@ repositories {
 }
 
 dependencies {
-    annotationProcessor "org.spongepowered:mixin:${Versioning.getMixinVersion(mcVersion()).release()}:processor"
+    annotationProcessor "org.spongepowered:mixin:${mod.mixin_version}:processor"
 }
 
 mixin {
