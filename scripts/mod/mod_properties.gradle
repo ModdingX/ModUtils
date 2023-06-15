@@ -78,7 +78,11 @@ org.moddingx.modgradle.ModGradle.initialiseProject(project)
     mod['java'] = versionInfo.java
     mod['resource'] = versionInfo.resource
     mod['data'] = versionInfo.data
-    if ('mixin' in versionInfo) mod['mixin_version'] = versionInfo.mixin
+    if ('mixin' in versionInfo) {
+        mod['mixin_version'] = versionInfo.mixin
+    } else if (mod.mixin) {
+        throw new IllegalStateException('Mixin is not available on minecraft ' + mod.minecraft)
+    }
 
     if ('mappings' in mod) {
         String mappingsStr = mod.mappings

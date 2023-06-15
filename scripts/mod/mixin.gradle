@@ -1,3 +1,5 @@
+apply plugin: 'org.spongepowered.mixin'
+
 repositories {
     maven { url = 'https://repo.spongepowered.org/repository/maven-public' }
 }
@@ -19,7 +21,7 @@ jar {
 // Prevent Mixin annotation processor from getting into IDEAs annotation processor settings
 if (System.getProperty('idea.sync.active') == 'true') {
     afterEvaluate {
-        tasks.withType(JavaCompile).all {
+        tasks.withType(JavaCompile).configureEach {
             it.options.annotationProcessorPath = files()
         }
     }
