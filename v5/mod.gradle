@@ -41,7 +41,7 @@ dependencies {
     classpath('org.parchmentmc:librarian') { version { strictly '1.2.0' } }
     classpath('net.darkhax.curseforgegradle:CurseForgeGradle') { version { strictly '1.0.14' } }
     classpath('com.modrinth.minotaur:Minotaur') { version { strictly '2.8.1' } }
-    classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+    classpath 'org.spongepowered:mixingradle:0.7.33'
     classpath 'org.apache.maven:maven-artifact:3.9.1'
     classpath 'com.google.code.findbugs:jsr305:3.0.2'
 
@@ -74,7 +74,7 @@ org.moddingx.modgradle.ModGradle.initialiseProject(project)
 }.call()
 
 [ 'modid', 'group', 'base_version', 'forge_version', 'license', 'license_url' ].each {
-    if (!(it in mod)) throw new IllegalStateException("mod.gradle is missing the required property ${it}")
+    if (!(it in mod)) throw new IllegalStateException("mod.properties is missing the required property ${it}")
 }
 
 ;{
@@ -136,7 +136,11 @@ org.moddingx.modgradle.ModGradle.initialiseProject(project)
     mod['java'] = versionInfo.java
     mod['resource'] = versionInfo.resource
     mod['data'] = versionInfo.data
-    if ('mixin' in versionInfo) mod['mixin_version'] = versionInfo.mixin
+    if ('mixin' in versionInfo) {
+        mod['mixin_version'] = versionInfo.mixin
+    } else if (mod.mixin) {
+        throw new IllegalStateException('Mixin is not available on minecraft ' + mod.minecraft)
+    }
 
     if ('mappings' in mod) {
         String mappingsStr = mod.mappings
@@ -460,14 +464,14 @@ if ('mcupdate' in mod) {
 
 // Configuration of mixin
 if (mod.mixin) {
-    repositories {
+    apply plugin: 'org.spongepowered.mixin'
+
+repositories {
     maven { url = 'https://repo.spongepowered.org/repository/maven-public' }
 }
 
 dependencies {
-    if (hasMixin()) {
-        annotationProcessor "org.spongepowered:mixin:${Versioning.getMixinVersion(mcVersion()).release()}:processor"
-    }
+    annotationProcessor "org.spongepowered:mixin:${mod.mixin_version}:processor"
 }
 
 mixin {
@@ -483,7 +487,7 @@ jar {
 // Prevent Mixin annotation processor from getting into IDEAs annotation processor settings
 if (System.getProperty('idea.sync.active') == 'true') {
     afterEvaluate {
-        tasks.withType(JavaCompile).all {
+        tasks.withType(JavaCompile).configureEach {
             it.options.annotationProcessorPath = files()
         }
     }
