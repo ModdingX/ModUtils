@@ -74,7 +74,7 @@ org.moddingx.modgradle.ModGradle.initialiseProject(project)
 }.call()
 
 [ 'modid', 'group', 'base_version', 'forge_version', 'license', 'license_url' ].each {
-    if (!(it in mod)) throw new IllegalStateException("mod.gradle is missing the required property ${it}")
+    if (!(it in mod)) throw new IllegalStateException("mod.properties is missing the required property ${it}")
 }
 
 ;{
