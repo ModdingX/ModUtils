@@ -7,6 +7,7 @@ dependencies {
 }
 
 boolean minecraftHasDatagen = mod.resource >= 4 && !mod.fmlonly
+boolean minecraftHasGameTest = mod.resource >= 8 && !mod.fmlonly
 
 if (minecraftHasDatagen) {
     sourceSets.main.resources {
@@ -35,6 +36,9 @@ minecraft {
                 property 'mixin.debug.export', 'true'
             }
         }
+        if (minecraftHasGameTest) {
+            property 'forge.enabledGameTestNamespaces', mod.modid
+        }
         mods {
             "${mod.modid}" {
                 source sourceSets.main
@@ -52,6 +56,11 @@ minecraft {
             data {
                 workingDirectory project.file('runData')
                 args '--mod', mod.modid, '--all', '--output', file('src/generated/resources'), '--existing', file('src/main/resources')
+            }.with(defaultRun)
+        }
+        if (minecraftHasGameTest) {
+            gameTestServer {
+                workingDirectory project.file('runGameTest')
             }.with(defaultRun)
         }
     }
