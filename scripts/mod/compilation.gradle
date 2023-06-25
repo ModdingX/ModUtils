@@ -31,7 +31,6 @@ jar {
                 'Specification-Version': '1',
                 "Implementation-Title": project.name,
                 "Implementation-Version": project.version,
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
                 "Automatic-Module-Name": "mcmods.${mod.modid}"
         ])
     }
@@ -50,5 +49,13 @@ afterEvaluate {
 
     tasks.withType(Javadoc).configureEach {
         options.encoding = 'UTF-8'
+    }
+}
+
+// Make reproducible jars
+afterEvaluate {
+    tasks.withType(AbstractArchiveTask).configureEach {
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
     }
 }
