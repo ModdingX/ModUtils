@@ -30,12 +30,12 @@ jar {
                 'Specification-Title': mod.modid,
                 'Specification-Version': '1',
                 'Implementation-Title': project.name,
-                'Implementation-Version': project.version,
-                'Automatic-Module-Name': "mcmods.${mod.modid}"
+                'Implementation-Version': project.version
         ])
         if ('commit_date' in mod) {
             attributes.put('Implementation-Timestamp', mod.commit_date)
         }
+        attributes.put('Automatic-Module-Name', "mcmods.${mod.modid}")
     }
 }
 jar.finalizedBy('reobfJar')
