@@ -86,6 +86,7 @@ The properties defined in `mod.properties` will be placed in a global object nam
 | **mixin** | `boolean` | Whether mixin is enabled. |
 | mixin_version | `String` | The target mixin version for the current minecraft version. |
 | **run** | `<run>` | See below. |
+| commit_date | `String` | The date of the latest git commit if available. |
 | **gitChangelog** | `()String` | Method that gets the changelog from git commits in the current CI build. Empty string if no changelog can be generated. |
 | curse | `<upload>` | Upload information for CurseForge. See below. |
 | modrinth | `<upload>` | Upload information for Modrinth. See below. |

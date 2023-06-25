@@ -110,4 +110,20 @@ org.moddingx.modgradle.ModGradle.initialiseProject(project)
     } catch (MalformedURLException e) {
         throw new IllegalStateException("Invalid license URL", e)
     }
+    
+    try {
+        var gitHash = System.getenv('GIT_COMMIT')
+        if (gitHash == null) gitHash = 'HEAD'
+        var stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'show', '-s', '--format=%cd', '--date=iso-strict', '' + gitHash
+            standardOutput = stdout
+        }
+        var commitDate = java.nio.charset.StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap(stdout.toByteArray())).toString().strip()
+        if (commitDate != null && !commitDate.isEmpty()) {
+            mod['commit_date'] = commitDate
+        }
+    } catch (Exception ignored) {
+        mod['commit_date'] = void
+    }
 }.call()
