@@ -2,11 +2,13 @@
 
 function die { echo "$@"; exit 1; };
 
-if [[ $# == 0 ]]; then
-  die "Usage: ${0} <branch>"
+if [[ "$#" != "2" ]]; then
+  die "Usage: ${0} <branch> <commit>"
 fi
 
 BRANCH="${1}"
+shift
+COMMIT="${1}"
 shift
 
 mkdir -p "output"
@@ -18,6 +20,7 @@ find .  -maxdepth 1 -name '*.gradle' | while read -r z; do
     -U "#[" "]" "(" "," ")]" "(" ")" "#" "" \
     -M "#" "\n" " " " " "\n" "(" ")" \
     -D "MODUTILS_VERSION=${BRANCH}" \
+    -D "MODUTILS_COMMIT=${COMMIT}" \
     +ssss "'''" "'''" "\\" +sSSS '"""' '"""' "\\" \
     +ssss "'" "'" "\\" +sSSS '"' '"' "\\" \
     --include "../build.h" \

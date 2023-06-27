@@ -18,6 +18,7 @@ base {
     archivesName = project.name
 }
 
+println "ModUtils: #[MODUTILS_VERSION] at commit #[MODUTILS_COMMIT]"
 println "Java: ${System.getProperty('java.version')}   JVM: ${System.getProperty('java.vm.version')}(${System.getProperty('java.vendor')})   Arch: ${System.getProperty('os.arch')}"
 println "Mod: ${project.name}(${mod.modid})   Group: ${project.group}   Version: ${project.version}"
 println "Minecraft: ${mod.minecraft}   Target: java${mod.java}" + (mod.mixin ? "   Mixin: ${mod.mixin_version}" : '')

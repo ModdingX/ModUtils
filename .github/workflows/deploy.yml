@@ -29,7 +29,7 @@ jobs:
             mkdir -p "deploy/${BRANCH}"
             cd base
             rm -rf output
-            bash build.sh "${BRANCH}"
+            bash build.sh "${BRANCH}" "$(git rev-parse --short "$GITHUB_SHA")"
             if [[ "$?" != "0" ]]; then
               exit 1
             fi
