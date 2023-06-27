@@ -37,7 +37,7 @@ repositories {
 
 dependencies {
     classpath('net.minecraftforge.gradle:ForgeGradle') { version { strictly '6.0.4' } }
-    classpath('org.moddingx:ModGradle') { version { strictly '4.0.1' } }
+    classpath('org.moddingx:ModGradle') { version { strictly '4.0.2' } }
     classpath('org.parchmentmc:librarian') { version { strictly '1.2.0' } }
     classpath('net.darkhax.curseforgegradle:CurseForgeGradle') { version { strictly '1.0.14' } }
     classpath('com.modrinth.minotaur:Minotaur') { version { strictly '2.8.1' } }
@@ -168,6 +168,22 @@ org.moddingx.modgradle.ModGradle.initialiseProject(project)
     } catch (MalformedURLException e) {
         throw new IllegalStateException("Invalid license URL", e)
     }
+    
+    try {
+        var gitHash = System.getenv('GIT_COMMIT')
+        if (gitHash == null) gitHash = 'HEAD'
+        var stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'show', '-s', '--format=%cd', '--date=iso-strict', '' + gitHash
+            standardOutput = stdout
+        }
+        var commitDate = java.nio.charset.StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap(stdout.toByteArray())).toString().strip()
+        if (commitDate != null && !commitDate.isEmpty()) {
+            mod['commit_date'] = commitDate
+        }
+    } catch (Exception ignored) {
+        mod['commit_date'] = void
+    }
 }.call()
 // Load secrets into ext.secrets
 ;{
@@ -285,6 +301,7 @@ dependencies {
 }
 
 boolean minecraftHasDatagen = mod.resource >= 4 && !mod.fmlonly
+boolean minecraftHasGameTest = mod.resource >= 8 && !mod.fmlonly
 
 if (minecraftHasDatagen) {
     sourceSets.main.resources {
@@ -313,6 +330,9 @@ minecraft {
                 property 'mixin.debug.export', 'true'
             }
         }
+        if (minecraftHasGameTest) {
+            property 'forge.enabledGameTestNamespaces', mod.modid
+        }
         mods {
             "${mod.modid}" {
                 source sourceSets.main
@@ -330,6 +350,11 @@ minecraft {
             data {
                 workingDirectory project.file('runData')
                 args '--mod', mod.modid, '--all', '--output', file('src/generated/resources'), '--existing', file('src/main/resources')
+            }.with(defaultRun)
+        }
+        if (minecraftHasGameTest) {
+            gameTestServer {
+                workingDirectory project.file('runGameTest')
             }.with(defaultRun)
         }
     }
@@ -402,11 +427,13 @@ jar {
         attributes([
                 'Specification-Title': mod.modid,
                 'Specification-Version': '1',
-                "Implementation-Title": project.name,
-                "Implementation-Version": project.version,
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-                "Automatic-Module-Name": "mcmods.${mod.modid}"
+                'Implementation-Title': project.name,
+                'Implementation-Version': project.version
         ])
+        if ('commit_date' in mod) {
+            attributes.put('Implementation-Timestamp', mod.commit_date)
+        }
+        attributes.put('Automatic-Module-Name', "mcmods.${mod.modid}")
     }
 }
 jar.finalizedBy('reobfJar')
@@ -423,6 +450,14 @@ afterEvaluate {
 
     tasks.withType(Javadoc).configureEach {
         options.encoding = 'UTF-8'
+    }
+}
+
+// Make reproducible jars
+afterEvaluate {
+    tasks.withType(AbstractArchiveTask).configureEach {
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
     }
 }
 
@@ -503,9 +538,11 @@ publishing {
             groupId = project.group
             artifactId = project.name
             version = project.version
-            artifact jar
+            artifact(jar) {
+                builtBy project.provider { project.tasks.named('reobfJar') }
+            }
             if (mod.sources) {
-                artifact sourceJar
+                artifact(sourceJar)
             }
             pom {
                 licenses {
