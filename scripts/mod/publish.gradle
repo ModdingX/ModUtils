@@ -6,9 +6,11 @@ publishing {
             groupId = project.group
             artifactId = project.name
             version = project.version
-            artifact jar
+            artifact(jar) {
+                builtBy project.provider { project.tasks.named('reobfJar') }
+            }
             if (mod.sources) {
-                artifact sourceJar
+                artifact(sourceJar)
             }
             pom {
                 licenses {
