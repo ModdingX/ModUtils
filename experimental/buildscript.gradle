@@ -40,7 +40,7 @@ dependencies {
     classpath 'org.apache.maven:maven-artifact:3.9.1'
     classpath 'com.google.code.findbugs:jsr305:3.0.2'
 
-    // ForgeGradle apparently does not know about version ranges and does not update their dependencies
-    // Force a more recent version here
-    classpath('de.siegmar:fastcsv') { version { strictly '[2.2.2,)' } }
+    // FastCSV broke binary compatibility in 3.0.0.
+    // Force the latest 2.x.x version here. This will at least work until some library starts using FastCSV 3.
+    classpath('de.siegmar:fastcsv') { version { strictly '[2.2.2,3.0.0)' } }
 }
