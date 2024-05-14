@@ -31,7 +31,7 @@ if (mod.mixin) {
     #include "mod/mixin.gradle"
 }
 
-if ('local_maven' in mod) {
+if ('local_maven' in mod || 'remote_maven' in mod) {
     #include "mod/publish.gradle"
 }
 

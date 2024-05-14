@@ -24,7 +24,12 @@ publishing {
     }
     repositories {
         maven {
-            url mod.local_maven
+            if ('remote_maven' in mod) {
+                url mod.maven
+                credentials(PasswordCredentials)
+            } else if ('local_maven' in mod) {
+                url mod.local_maven
+            }
         }
     }
 }
