@@ -279,7 +279,7 @@ base {
     archivesName = project.name
 }
 
-println "ModUtils: v5 at commit 529ca87"
+println "ModUtils: v5 at commit 6ef8af2"
 println "Java: ${System.getProperty('java.version')}   JVM: ${System.getProperty('java.vm.version')}(${System.getProperty('java.vendor')})   Arch: ${System.getProperty('os.arch')}"
 println "Mod: ${project.name}(${mod.modid})   Group: ${project.group}   Version: ${project.version}"
 println "Minecraft: ${mod.minecraft}   Target: java${mod.java}" + (mod.mixin ? "   Mixin: ${mod.mixin_version}" : '')
@@ -604,7 +604,7 @@ modrinth {
     if ('modrinth_auth' in secrets) {
         token = secrets.modrinth_auth.toString()
     } else if (System.getenv('MODRINTH_UPLOAD_TOKEN')) {
-        apiToken = System.getenv('MODRINTH_UPLOAD_TOKEN')
+        token = System.getenv('MODRINTH_UPLOAD_TOKEN')
     } else {
         token = ''
     }
