@@ -4,6 +4,8 @@ String modrinthChangelog = mod.gitChangelog()
 modrinth {
     if ('modrinth_auth' in secrets) {
         token = secrets.modrinth_auth.toString()
+    } else if (System.getenv('MODRINTH_UPLOAD_TOKEN')) {
+        apiToken = System.getenv('MODRINTH_UPLOAD_TOKEN')
     } else {
         token = ''
     }
