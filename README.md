@@ -55,7 +55,13 @@ To set a property, set `<name>_<property>` in `mod.properties` where `<name>` is
 
 ## Secrets
 
+### Using a Secrets File
 ModUtils will look for a file named `secrets.properties` (the location can be changed with the environment variable `SECRET_PROPERTIES`) and load those properties into a global object named `secrets`. The keys for mod uploading are expected as `curse_auth` or `modrinth_auth` in that secret object.
+
+### Using Environment Variables
+If the corresponding keys are not found in the `secrets` file, ModUtils will check for the following environment variables:
+- `CURSEFORGE_UPLOAD_TOKEN` for CurseForge uploads.
+- `MODRINTH_UPLOAD_TOKEN` for Modrinth uploads.
 
 ## Mod properties
 

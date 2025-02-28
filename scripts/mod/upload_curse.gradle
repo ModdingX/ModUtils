@@ -4,6 +4,8 @@ String curseChangelog = mod.gitChangelog()
 task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     if ('curse_auth' in secrets) {
         apiToken = secrets.curse_auth.toString()
+    } else if (System.getenv('CURSEFORGE_UPLOAD_TOKEN')) {
+        apiToken = System.getenv('CURSEFORGE_UPLOAD_TOKEN')
     } else {
         apiToken = ''
     }
