@@ -279,7 +279,7 @@ base {
     archivesName = project.name
 }
 
-println "ModUtils: v5 at commit 26a566e"
+println "ModUtils: v5 at commit 529ca87"
 println "Java: ${System.getProperty('java.version')}   JVM: ${System.getProperty('java.vm.version')}(${System.getProperty('java.vendor')})   Arch: ${System.getProperty('os.arch')}"
 println "Mod: ${project.name}(${mod.modid})   Group: ${project.group}   Version: ${project.version}"
 println "Minecraft: ${mod.minecraft}   Target: java${mod.java}" + (mod.mixin ? "   Mixin: ${mod.mixin_version}" : '')
@@ -571,6 +571,8 @@ String curseChangelog = mod.gitChangelog()
 task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     if ('curse_auth' in secrets) {
         apiToken = secrets.curse_auth.toString()
+    } else if (System.getenv('CURSEFORGE_UPLOAD_TOKEN')) {
+        apiToken = System.getenv('CURSEFORGE_UPLOAD_TOKEN')
     } else {
         apiToken = ''
     }
@@ -601,6 +603,8 @@ String modrinthChangelog = mod.gitChangelog()
 modrinth {
     if ('modrinth_auth' in secrets) {
         token = secrets.modrinth_auth.toString()
+    } else if (System.getenv('MODRINTH_UPLOAD_TOKEN')) {
+        apiToken = System.getenv('MODRINTH_UPLOAD_TOKEN')
     } else {
         token = ''
     }
