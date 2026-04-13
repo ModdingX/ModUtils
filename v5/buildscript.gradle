@@ -31,7 +31,7 @@ repositories {
 }
 
 dependencies {
-    classpath('net.minecraftforge.gradle:ForgeGradle') { version { strictly '6.0.21' } }
+    classpath('net.minecraftforge.gradle:ForgeGradle') { version { strictly '6.0.52' } }
     classpath('org.moddingx:ModGradle') { version { strictly '4.0.6' } }
     classpath('org.parchmentmc:librarian') { version { strictly '1.2.0.6-dev-SNAPSHOT' } }
     classpath('net.darkhax.curseforgegradle:CurseForgeGradle') { version { strictly '1.0.14' } }
