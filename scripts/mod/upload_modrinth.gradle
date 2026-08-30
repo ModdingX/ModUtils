@@ -21,6 +21,7 @@ modrinth {
     versionType = mod.modrinth.release
     gameVersions = mod.modrinth.versions
     loaders = [ "forge" ]
+    // todo setting environment type is currently not supported by Minotaur
 
     dependencies = []
     mod.modrinth.requirements.each { dependencies.add(new com.modrinth.minotaur.dependencies.ModDependency(it, "required")) }

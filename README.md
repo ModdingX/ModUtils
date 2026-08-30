@@ -50,6 +50,7 @@ ModUtils supports upload to [CurseForge](https://www.curseforge.com/minecraft/mc
 | versions | The minecraft version-tags that should be added to a file (separated by comma). Default is the current minecraft version. |
 | requirements | A list of projects that are required dependencies (separated by comma) |
 | optionals | A list of projects that are optional dependencies (separated by comma) |
+| environment_type | The environment the mod supports. One of `client_and_server`, `client_only`, `server_only`, `client_optional`, `server_optional` and `client_and_server_optional`. Default is `client_and_server`. Currently only applied to CurseForge. |
 
 To set a property, set `<name>_<property>` in `mod.properties` where `<name>` is the website to upload to (`curse` or `modrinth`) and `<property>` is the property to set. If a property is not set in this format, the property `upload_<property>` is searched, so you can set properties for both CurseForge and Modrinth at the same time. However, you can't use `upload_project`.
 
@@ -119,6 +120,7 @@ All non-standard properties in mod.properties are also copied into the `mod` obj
 | **versions** | `List<String>` | The game version tags to use. |
 | **requirements** | `List<String>` | Required dependencies. |
 | **optionals** | `List<String>` | Optional dependencies. |
+| **environment_type** | `String` | The supported environment (normalised to lowercase). |
 
 ## Experimental Features
 

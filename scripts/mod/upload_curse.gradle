@@ -19,6 +19,11 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     }
     
     def mainFile = upload(mod.curse.project, jar)
+    switch (mod.curse.environment_type) {
+        case 'client_only': mainFile.addEnvironment('Client'); break
+        case 'server_only': mainFile.addEnvironment('Server'); break
+        default: mainFile.addEnvironment('Client', 'Server'); break // optionals are treated as "supported"
+    }
     fileConfig(mainFile)
     
     if (mod.sources) {
