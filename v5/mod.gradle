@@ -287,7 +287,7 @@ base {
     archivesName = project.name
 }
 
-println "ModUtils: v5 at commit eca8f6a"
+println "ModUtils: v5 at commit dac1df5"
 println "Java: ${System.getProperty('java.version')}   JVM: ${System.getProperty('java.vm.version')}(${System.getProperty('java.vendor')})   Arch: ${System.getProperty('os.arch')}"
 println "Mod: ${project.name}(${mod.modid})   Group: ${project.group}   Version: ${project.version}"
 println "Minecraft: ${mod.minecraft}   Target: java${mod.java}" + (mod.mixin ? "   Mixin: ${mod.mixin_version}" : '')
@@ -594,6 +594,7 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     }
     
     def mainFile = upload(mod.curse.project, jar)
+    mod.curse.versions.each { mainFile.addGameVersion(it) }
     switch (mod.curse.environment_type) {
         case 'client_only': mainFile.addEnvironment('Client'); break
         case 'server_only': mainFile.addEnvironment('Server'); break
