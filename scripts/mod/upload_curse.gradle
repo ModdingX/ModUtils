@@ -19,6 +19,7 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     }
     
     def mainFile = upload(mod.curse.project, jar)
+    mod.curse.versions.each { mainFile.addGameVersion(it) }
     switch (mod.curse.environment_type) {
         case 'client_only': mainFile.addEnvironment('Client'); break
         case 'server_only': mainFile.addEnvironment('Server'); break
