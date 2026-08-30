@@ -39,7 +39,7 @@ dependencies {
     classpath('net.minecraftforge.gradle:ForgeGradle') { version { strictly '6.0.52' } }
     classpath('org.moddingx:ModGradle') { version { strictly '4.0.6' } }
     classpath('org.parchmentmc:librarian') { version { strictly '1.2.0.6-dev-SNAPSHOT' } }
-    classpath('net.darkhax.curseforgegradle:CurseForgeGradle') { version { strictly '1.0.14' } }
+    classpath('net.darkhax.curseforgegradle:CurseForgeGradle') { version { strictly '1.1.28' } }
     classpath('com.modrinth.minotaur:Minotaur') { version { strictly '2.8.7' } }
     classpath 'org.spongepowered:mixingradle:0.7.38'
     classpath 'org.apache.maven:maven-artifact:3.9.6'
@@ -99,6 +99,13 @@ org.moddingx.modgradle.ModGradle.initialiseProject(project)
         properties.put('versions', query('versions', mod.minecraft).split(",")*.strip().toList().findAll { !it.isEmpty() })
         properties.put('requirements', query('requirements', '').split(",")*.strip().toList().findAll { !it.isEmpty() })
         properties.put('optionals', query('optionals', '').split(",")*.strip().toList().findAll { !it.isEmpty() })
+        String environmentType = query('environment_type', 'client_and_server').toLowerCase(java.util.Locale.ROOT)
+        List validEnvironmentTypes = [ 'client_and_server', 'client_only', 'server_only',
+                                       'client_optional', 'server_optional', 'client_and_server_optional' ]
+        if (!(environmentType in validEnvironmentTypes)) {
+            throw new IllegalStateException("Invalid environment type: ${environmentType}. Must be one of ${validEnvironmentTypes}")
+        }
+        properties.put('environment_type', environmentType)
         return modgradle.wrap(properties)
     }
     
@@ -108,6 +115,7 @@ org.moddingx.modgradle.ModGradle.initialiseProject(project)
         mod[id + '_versions'] = void
         mod[id + '_requirements'] = void
         mod[id + '_optionals'] = void
+        mod[id + '_environment_type'] = void
     }
     
     makeBoolean('mixin', false)
@@ -279,7 +287,7 @@ base {
     archivesName = project.name
 }
 
-println "ModUtils: v5 at commit 48b7aae"
+println "ModUtils: v5 at commit eca8f6a"
 println "Java: ${System.getProperty('java.version')}   JVM: ${System.getProperty('java.vm.version')}(${System.getProperty('java.vendor')})   Arch: ${System.getProperty('os.arch')}"
 println "Mod: ${project.name}(${mod.modid})   Group: ${project.group}   Version: ${project.version}"
 println "Minecraft: ${mod.minecraft}   Target: java${mod.java}" + (mod.mixin ? "   Mixin: ${mod.mixin_version}" : '')
@@ -586,6 +594,11 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     }
     
     def mainFile = upload(mod.curse.project, jar)
+    switch (mod.curse.environment_type) {
+        case 'client_only': mainFile.addEnvironment('Client'); break
+        case 'server_only': mainFile.addEnvironment('Server'); break
+        default: mainFile.addEnvironment('Client', 'Server'); break // optionals are treated as "supported"
+    }
     fileConfig(mainFile)
     
     if (mod.sources) {
@@ -620,6 +633,7 @@ modrinth {
     versionType = mod.modrinth.release
     gameVersions = mod.modrinth.versions
     loaders = [ "forge" ]
+    // todo setting environment type is currently not supported by Minotaur
 
     dependencies = []
     mod.modrinth.requirements.each { dependencies.add(new com.modrinth.minotaur.dependencies.ModDependency(it, "required")) }
